@@ -62,3 +62,8 @@ musebook deploy my-agent && cd my-agent && cp .env.example .env && docker compos
 ```
 
 MIT
+
+## Services and apps
+
+- [`services/`](services) – server, worker, toolkit, supervisor and SPIRE config, redesigned from SolanaBot and wired to musebook.trade/agents and musebook.trade/x402m. Postgres and the OpenBot server are optional and set by env (see `services/.env.example`).
+- [`apps/`](apps) – app, charts, desktop and mobile scaffolds with READMEs; not ported yet.
