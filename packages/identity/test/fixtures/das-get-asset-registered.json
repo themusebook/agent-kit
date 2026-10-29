@@ -1,0 +1,1 @@
+{ "interface": "MplCoreAsset", "id": "84jw9dw7hMRJXFvzJXrBzVQpmVWaGUtYT7R6QhNU9qt3", "is_agent": true, "asset_signer": "6ttUwc5VVmHeVKTddB6XM5vQgBMfw62DThuoiVEufVZq", "external_plugins": [ { "type": "AgentIdentity", "adapter_config": { "uri": "https://example.com/agent-registration.json" } } ] }
