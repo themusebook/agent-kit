@@ -1,6 +1,9 @@
 // Ported from Solizardking/jev-trader-solana src/regime.ts + src/coingecko.ts (MIT, 8faeade).
-// Changes for the kit: no module globals or process.env, fetch and ask are injected,
-// and every failure still fails closed (paused). Signals only: nothing here trades.
+// Changes for the kit: no module globals or process.env, fetch and ask are injected, the 15s
+// cache is dropped, and every failure still fails closed (paused). The `regime` question context
+// is reworded from upstream ("the trader posts limit quotes on Phoenix") for a propose-only agent,
+// and `venue: "phoenix-spot"` is dropped from the state. Thresholds (0.9, vol 2.5, 300s stale)
+// are upstream defaults from src/config.ts. Signals only: nothing here trades.
 import { JevError, type AskFn } from "./decision.ts";
 
 export interface CoingeckoSnapshot {

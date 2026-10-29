@@ -26,6 +26,7 @@ export interface PerpsVenue {
   buildOrder(intent: PerpOrderIntent, ctx: { recentBlockhash: string }): Promise<OrderResult>;
 }
 
+/** Kit policy (ours, not from an upstream repo): perps intents are 1x only. */
 export const MAX_LEVERAGE = 1;
 
 export function checkIntent(i: PerpOrderIntent): void {

@@ -70,7 +70,7 @@ Gaps in the docs:
 `PerpsVenue` has `markets`, `positions` and `buildOrder`. Every order needs a `priceLimitUsd`.
 
 - **Phoenix:** Rise builds the market order packet and the instruction. `kitToWeb3` converts the instruction from `@solana/kit` account roles into a web3 instruction, and the result is wrapped in an unsigned transaction.
-- **Imperial:** reads use `/status`, `/phoenix/markets`, `/gmtrade/funding-rates`, `/positions` and `/orders`. `buildDeposit` calls `POST /deposit/build-tx` and hands back the transaction unsigned. Imperial orders go through `POST /mobile/orders`, where Imperial's server signs under a delegated session. That breaks the user-signs-every-transaction rule, so `buildOrder` returns `status: "disabled"` with a preview.
+- **Imperial:** reads use `/status`, `/phoenix/markets`, `/gmtrade/funding-rates`, `/positions` and `/orders`. `buildDeposit` calls `POST /deposit/build-tx` and hands back the transaction unsigned. Imperial is a multi-underwriter router (Jupiter 0, Flash 1, Phoenix 2 as default, GMTrade 3, the codes in clawd-perps-agent `src/imperialAgent.ts`). Its only order submit is `POST /mobile/orders` under a JWT session, which upstream keeps dry-run unless `IMPERIAL_LIVE=true` plus a token. No wallet-signable order tx comes back, which breaks the user-signs-every-transaction rule, so `buildOrder` returns `status: "disabled"` with a preview.
 
 ## pumpai MCP
 
