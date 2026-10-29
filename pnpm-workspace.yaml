@@ -1,3 +1,6 @@
 packages:
   - "packages/*"
   - "examples/*"
+  # The starter-kit CLI is npm-managed (own package-lock, CI job) and pins a git
+  # dependency pnpm cannot shallow-fetch, so it stays out of the pnpm workspace.
+  - "!packages/cli"

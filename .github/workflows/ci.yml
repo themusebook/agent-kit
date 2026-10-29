@@ -1,0 +1,55 @@
+name: ci
+on: { push: { branches: [main, starter-kit] }, pull_request: {} }
+permissions: { contents: read }
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: packages/cli } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: npm ci
+      - run: npm test
+  agents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: cd agents/shared && bun install --frozen-lockfile && bun test
+      - run: cd agents/bot && bun install --frozen-lockfile && bun test
+      - run: cd agents/computer && bun install --frozen-lockfile && bun test
+      - run: cd agents/shared && bunx tsc --noEmit
+      - run: cd agents/computer && bunx tsc --noEmit
+  adk:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: agents/adk } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt -r requirements-test.txt
+      - run: python -m pytest -q
+  services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { service: [toolkit, server, worker, supervisor] }
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - run: bunx tsc --noEmit
+  sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck

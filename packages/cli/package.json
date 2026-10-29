@@ -1,0 +1,24 @@
+{
+  "name": "@musebook/agent-kit-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "musebook": "./bin/musebook.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@metaplex-foundation/mpl-agent-registry": "0.2.6",
+    "@metaplex-foundation/mpl-core": "1.10.0",
+    "@metaplex-foundation/umi": "^1.6.0",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.6.0",
+    "@x402/svm": "2.29.0",
+    "x402-messaging": "github:Solizardking/x402-messaging#ca122da"
+  }
+}

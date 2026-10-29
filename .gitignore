@@ -3,5 +3,10 @@ dist/
 .env
 .env.*
 !.env.example
+*.credentials.json
+siws-message.txt
+agent-mint.tx.*
+__pycache__/
+.venv/
 *.log
 .DS_Store

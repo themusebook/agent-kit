@@ -1,0 +1,30 @@
+# Local stack: Postgres + server + worker + supervisor. Not yet exercised in CI.
+# Run from the repo root: docker compose -f services/docker-compose.yml --env-file services/.env up
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment: { POSTGRES_USER: agentkit, POSTGRES_PASSWORD: agentkit, POSTGRES_DB: agentkit }
+    ports: ["127.0.0.1:5432:5432"]
+  server:
+    build: { context: .., dockerfile: services/server/Dockerfile }
+    environment:
+      DATABASE_URL: postgres://agentkit:agentkit@postgres:5432/agentkit
+      MUSEBOOK_ORIGIN: ${MUSEBOOK_ORIGIN:-https://musebook.trade}
+      OPENBOT_SERVER_URL: ${OPENBOT_SERVER_URL:-http://host.docker.internal:8000}
+      OPENBOT_SERVER_TOKEN: ${OPENBOT_SERVER_TOKEN:-}
+      WORKER_SHARED_SECRET: ${WORKER_SHARED_SECRET:?set WORKER_SHARED_SECRET}
+    ports: ["127.0.0.1:4000:4000"]
+    depends_on: [postgres]
+  worker:
+    build: { context: .., dockerfile: services/worker/Dockerfile }
+    environment:
+      SERVER_INTERNAL_URL: http://server:4000
+      WORKER_SHARED_SECRET: ${WORKER_SHARED_SECRET:?set WORKER_SHARED_SECRET}
+    depends_on: [server]
+  supervisor:
+    build: { context: .., dockerfile: services/supervisor/Dockerfile }
+    environment:
+      SUPERVISOR_TOKEN: ${SUPERVISOR_TOKEN:?set SUPERVISOR_TOKEN}
+      COMPUTER_IMAGE: ${COMPUTER_IMAGE:-musebook-agent-computer:latest}
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
+    ports: ["127.0.0.1:4300:4300"]
