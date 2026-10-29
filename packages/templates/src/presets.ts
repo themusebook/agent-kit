@@ -20,7 +20,9 @@ export type AgentTemplateId =
   | "raydium-agent"
   | "pump-agent"
   | "stonk-agent"
-  | "rwa-agent";
+  | "rwa-agent"
+  | "perps-agent"
+  | "decision-agent";
 
 export interface TemplateServiceDefault {
   name: string;
@@ -121,7 +123,7 @@ export const PUMP_AGENT: AgentTemplatePreset = {
   id: "pump-agent",
   name: "Pump Agent",
   summary:
-    "An agent launched on the pump.fun bonding curve that watches the launch stream. Metadata + finance template: pump.fun execution tooling lives OUTSIDE the kit.",
+    "An agent launched on the pump.fun bonding curve that watches the launch stream — now with finance-style flow descriptors for the fun-block agent API (create-coin, swap, fees, agent-payments invoices). Builders only: the API returns unsigned transactions and the user co-signs.",
   services: [
     { name: "trading", domains: ["pump-fun", "memecoins"] },
     { name: "stream", domains: ["pump-fun"] },
@@ -132,18 +134,22 @@ export const PUMP_AGENT: AgentTemplatePreset = {
     launchRoute: "pump-fun-bonding-curve",
     graduation: "pump.fun graduation migrates the token to the venue's AMM (PumpSwap) per pump.fun's own flow.",
     notes: [
-      "The kit ships NO pump.fun SDK: launches/trades run through the operator's pump.fun tooling; this preset standardizes the agent's identity, metadata and caps only.",
+      "v0.3 DEEPENING: the finance package ships pump.fun flow descriptors (finance/src/pump.ts): buildCreateCoinRequest, buildSwapRequest, buildCollectFeesRequest, buildFeeSharingConfigRequest, buildAgentPaymentInvoice. Each returns a request descriptor for POST https://fun-block.pump.fun/agents/... — the API answers an unsigned base64 transaction and the USER co-signs in their own wallet; the kit never signs and never broadcasts.",
+      "Swap discipline: check bonding-curve vs graduated-AMM state BEFORE building (the routes differ), slippageBps is REQUIRED on every trade (buildSwapRequest refuses without it), quote first and get a fresh approval of exact terms.",
+      "Agent-payments invoices are duplicate-safe via the Invoice ID PDA (@pump-fun/agent-payments-sdk); the server verifies payment ON-CHAIN before delivering — never deliver on an unverified claim.",
       "Launch observation: the Musebook PUMP LIVE stream (pump.musebook.trade, $CLAWD-holder tier; public relay wss://clawd-ws.fly.dev/ws) carries new Pump + Stonk launches.",
+      "Honesty note: the fun-block field contract follows the documented agent-API surface in the owner's pump skills; the host was verified live 2026-09-19 but the full POST flows were not live-tested end-to-end — dry-run first.",
     ],
   },
   requiredCaps: [
     "The launch stream is OBSERVATION, not a trading signal — pair it with on-chain verification (supply, authorities, largest holders) and a rug check before acting.",
     "Holder-tier stream access requires a wallet signature challenge (user signs a message; no keys change hands) and any positive $CLAWD balance.",
-    "Bonding-curve buys/sells are the operator's explicit actions through their own tooling — the preset grants the kit no execution authority.",
+    "Every pump flow descriptor requires the user's co-signature: the preset grants the kit no execution authority and no key custody.",
   ],
   sources: [
+    "local skills local-pump-agents-create-coin / local-pump-agents-swap / local-pump-agents-fees / local-pump-agents-payments (fun-block agent API contract, unsigned-tx + user co-sign doctrine)",
     "local skill local-pump-stream (pump.musebook.trade tiers, challenge/verify auth, observation-not-signal guidance)",
-    "themusebook/skills pump-fun family (pump/pumpfun/*) for the venue's playbooks",
+    "agent-kit finance package (pump.ts): the flow descriptors this preset references",
   ],
 };
 
@@ -151,7 +157,7 @@ export const STONK_AGENT: AgentTemplatePreset = {
   id: "stonk-agent",
   name: "Stonk Agent",
   summary:
-    "An agent on stonk.fun (Stonkfun launchpad). Honest status: the API prepare-launch flow is currently DISABLED on the venue; the live launch path is the self-built Raydium LaunchLab flow.",
+    "An agent on stonk.fun (Stonkfun launchpad) backed by the kit's REAL Stonkfun Developer API client (@themusebook/agent-kit-stonk): reads, API-built launches, BYO LaunchLab launch plans, and Fee Key NFT fee claims. Non-custodial — no API key exists; the caller's wallet signature authorizes launches and claims.",
   services: [
     { name: "trading", domains: ["stonkfun", "launchpad"] },
     { name: "fees", domains: ["stonkfun"] },
@@ -161,19 +167,22 @@ export const STONK_AGENT: AgentTemplatePreset = {
   finance: {
     launchRoute: "stonkfun-launchlab",
     notes: [
-      "Live launch path (verified 2026-09-18): self-built against Raydium LaunchLab — a launch PLAN is built and validated first (quote pair launchable + LaunchLab-ready, pricing, tax tier); the plan signs NOTHING.",
-      "API flow (prepare → sign → submit via POST /launches/prepare) exists in the venue's API and in the owner's RWA repo (agents/stonkfun.ts), but POST /launches/prepare currently returns 503 service_unavailable ('New launches on this venue are disabled; launch through LaunchLab instead', /stats paidLaunchesEnabled: false). Do not present the API-prepare flow as available.",
-      "Creator seat on a standard launch is a Token-2022 position NFT (decimals 0, supply 1): mint it to take custody, burn it to release; claim fees as its holder (GET /tokens/{mint}/fees → claim prepare → sign → submit).",
+      "CORRECTION vs v0.2: this preset previously stated the API prepare-launch flow was DISABLED on the venue (a 2026-09-18 probe). Per the official Stonkfun Developer API documentation supplied by the owner, BOTH launch paths exist and which one is live is a runtime fact: GET /stats reports config.paidLaunchesEnabled / config.launchLabEnabled, and the client reads stats BEFORE choosing a path (kit.stonk.chooseLaunchPath). Never hardcode the path.",
+      "Path A (API-built): POST /launches/prepare → caller signs the fee payment → POST /launches/submit → poll GET /launches/{paymentSignature}. Never pay twice — the payment signature identifies the launch. Standard-launch creator seat = Token-2022 position / Fee Key NFT (supply 1, decimals 0) minted to the creator.",
+      "Path B (BYO LaunchLab, no platform fee): planLaunchLabLaunch validates the pair gates (launchable AND launchLabReady), the mode's tax rules and every derived PDA against GET /launchlab/pricing before returning an initializeWithToken2022 descriptor — totalFundRaisingB is pricing.raise.raw verbatim (the SDK's 85-SOL constant is a trap on non-SOL quotes), and the transfer-fee extension keys are EXACTLY transferFeeBasePoints/maxinumFee (any other key silently yields a zero-rate tax).",
+      "Fee claims (locked position + Fee Key NFT launches only): GET /tokens/{mint}/fees → claim prepare → sign AS-IS → submit (idempotent per intent). 403 = no creator position (LaunchLab launches auto-forward creator fees); 409 = nothing claimable yet. A creator-quote-vault scope sweeps ALL of a creator's launches against a quote — claim once per quote, not per mint.",
+      "v2 reads (no CORS → server-side only) cover recent launches, token socials and the rewards ledger; v1 keeps tokens/pairs/launches/stats. Rate limits are honored with typed 429s (StonkRateLimitError).",
     ],
   },
   requiredCaps: [
-    "Prepare → browser-sign → submit everywhere: the API builds unsigned transactions; the user signs in their own wallet; no endpoint signs on anyone's behalf.",
-    "Never pay a launch fee twice: after submit, poll GET /launches/{paymentSignature}; a service_unavailable with charged: false means unpaid — take a fresh prepare.",
-    "Keep the creator position NFT in a Backpack wallet (per the RWA repo's stonkfun notes).",
+    "Caller signs, kit never does: launches and claims take a caller-supplied signer callback; the kit holds no keys and broadcasts nothing the caller did not sign.",
+    "Read /stats before launching and re-fetch pricing before signing — both are priced at request time.",
+    "Land a STANDARD LaunchLab launch first and confirm launchpad: \"launchlab\" in GET /tokens/{mint} before building a taxed one: an unadopted taxed mint taxes holders for nobody (the platform withhold authority is set at creation).",
   ],
   sources: [
-    "local skill local-stonkfun (API surface, verified 2026-09-18 launch-disabled note, LaunchLab planner)",
-    "themusebook/solana-rwa-agents agents/stonkfun.ts + README StonkFun section (prepare/submit/poll, position NFT, fee claims) — that repo's former name was Solana-RWA-Smart-Contract",
+    "Official Stonkfun Developer API documentation (owner-supplied, authoritative — supersedes the v0.2 launch-disabled claim)",
+    "agent-kit stonk package (@themusebook/agent-kit-stonk): the client this preset references",
+    "local skill local-stonkfun + themusebook/solana-rwa-agents agents/stonkfun.ts (earlier API surface notes; where they conflict with the official API doc, the doc wins — see docs/migration-v0.3.0.md)",
   ],
 };
 
@@ -214,12 +223,84 @@ export const RWA_AGENT: AgentTemplatePreset = {
   ],
 };
 
+export const PERPS_AGENT: AgentTemplatePreset = {
+  id: "perps-agent",
+  name: "Perps Agent",
+  summary:
+    "A perpetuals trading agent on Phoenix-routed venues. Venue variants: Imperial (Phoenix-routed — the grounded variant, via the kit's perps package) and Phoenix-direct (market-data only in this kit: no inspected source places native Phoenix orders). Every order is a descriptor the caller risk-checks and signs — the kit never holds keys and never broadcasts.",
+  services: [
+    { name: "trading", domains: ["perps", "phoenix", "imperial"] },
+    { name: "market-data", domains: ["perps"] },
+  ],
+  x402Support: false,
+  supportedTrust: ["reputation"],
+  finance: {
+    launchRoute: "none",
+    notes: [
+      "No token launch is implied by this preset: a perps agent's finance is margin + risk, not a launch route. (If the agent also wants a token, the Genesis route in finance applies independently.)",
+      "Venue variant IMPERIAL (grounded): @themusebook/agent-kit-perps describes orders in the shapes the owner's stacks use — limit price carried in slPrice, TP/SL attached AFTER fill as separate orders (the working bodies always send empty orderFlags), TWAMM block-segmented orders via placeTwammOrder, volatility-scaled grid plans, and Touch probability markets at catalog level (no live Touch order path exists in the sources).",
+      "Venue variant PHOENIX-DIRECT (market-data only): the owner's repos reach Phoenix THROUGH Imperial; no native Phoenix placement is described anywhere in the inspected sources, so the kit describes Phoenix reads only and does not invent placement semantics.",
+      "Risk gate (perps.evaluatePreTradeRisk) mirrors the source thresholds: $5 min / $1,000 max notional per order, 2x max leverage, $5,000 max total exposure, kill switch, empty-book refusal — refusals throw, they never warn-and-continue. Dry-run is the default posture.",
+    ],
+  },
+  requiredCaps: [
+    "Pre-trade risk check before EVERY order: kill switch off, book non-empty, notional/leverage/exposure inside caps — a RiskCheckError stops the trade, full stop.",
+    "Caller signs: BOTH source repos sign with a raw keypair loaded from env (no session keys, no delegation anywhere in them) — the kit deliberately diverges: descriptors are plans and signing is always the caller's own arrangement; never import the repos' env-keypair posture into a kit integration.",
+    "TP/SL discipline: never encode take-profit/stop-loss as conditional order flags — the working stacks always send empty orderFlags; attach separate reduce orders after the entry fills (bot presets default stopLossPct/takeProfitPct 2–5% / 4–10% by posture).",
+    "Price-field discipline: the limit price travels in slPrice; the CLI adapter rejects price-only orders — a transport that drops slPrice loses the price entirely.",
+    "PnL discipline: positions read through the agentgateway surface carry PnL + liquidation price; know which surface your decision read before acting on a position.",
+  ],
+  sources: [
+    "Solizardking/clawd-agents-perps (Imperial stack: imperialAgent/imperialBot/imperialWs, twammAutomation, vulcanCatalog; agent-registry identity layers)",
+    "Solizardking/clawd-perps-agent (near-identical Imperial core + financial/money.ts risk thresholds + financialClawd tests; agentgateway CLI order semantics)",
+    "agent-kit perps package (@themusebook/agent-kit-perps): venue descriptors, risk gate, order descriptors grounded in those repos",
+    "NOT grounded: native Phoenix order placement (absent from both repos) — see docs/perps.md for the full overlap/difference notes",
+  ],
+};
+
+export const DECISION_AGENT: AgentTemplatePreset = {
+  id: "decision-agent",
+  name: "Decision Agent",
+  summary:
+    "An agent whose trades are chosen by a typed judgment (TypeSafe/JEV pattern) over a dynamic action space built from the venues reachable right now. Fail-closed to BLOCKED on any malformed or out-of-space answer; paper/dry-run by default; memory recall informs but never widens the action space.",
+  services: [
+    { name: "decision", domains: ["trading", "jev", "typesafe"] },
+    { name: "trading", domains: ["multi-venue"] },
+  ],
+  x402Support: false,
+  supportedTrust: ["reputation"],
+  finance: {
+    launchRoute: "none",
+    notes: [
+      "Decision loop (perps.decision): buildActionSpace(reachableVenues) → DecisionEngine.request(context incl. regime + recall) → judge(rawJudgment) validates shape, space membership and parameter bounds → verdict decided|blocked.",
+      "Action conventions from the repo: the space is a closed discriminated union over the venues; sells are NEGATIVE amountUsd (one signed field decides direction — there is no separate amount), basket legs carry poolId + weight in (0,1] with Σ weights ≤ 1, and confidence (0..1) is metadata that never gates execution.",
+      "Two-model split in the repo: the NARRATIVE model proposes (it never computes sizes — a numbers-only guardrail recomputes them), and a separate JUDGE model approves or objects over the structured proposal, default-deny: an unparseable verdict is an objection, and an approval with an empty objection field is itself treated as no verdict.",
+      "The action space is built ONLY from reachable venues (plus the always-available hold). An action from an unreachable venue — however good the memory of it — is out of space and BLOCKED.",
+      "Paper by default: the engine returns plans. The source repo is stricter — its live mode is a hard refusal ('not enabled in v1'); the kit's live verdicts exist only behind an explicit operator opt-in (allowLive: true) at construction, and even then execution stays with the caller behind the perps risk gate.",
+      "Regime context (trend/volatility, CoinGecko-sourced in the source stack) rides as decision context; it informs the judgment, it does not gate or widen anything by itself.",
+    ],
+  },
+  requiredCaps: [
+    "Fail-closed is non-negotiable: malformed JSON, an unknown action, an out-of-bounds parameter or a bad confidence value all resolve to BLOCKED — never to a default trade.",
+    "Memory recall is CONTEXT, never authority: recalled strategies may be described to the judge but the space is built from venue reachability alone (enforced + tested in perps/decision.ts).",
+    "Every decided action still passes the venue's own gates before execution (perps risk gate for perps venues; finance builders' validation for launches/swaps). A decision is not a risk approval.",
+    "Paper first: run the loop in paper mode against live data before any live opt-in; the source stack's own posture is dry-run only.",
+  ],
+  sources: [
+    "Solizardking/jev-trader-solana (decision.ts/trader.ts decision loop, regime.ts CoinGecko regime context, dynamic venue action space across jupiter/dflow/imperial/pump/stonk modules)",
+    "local skill local-clawd-jev-trading (TypeSafe JEV decision brain, dynamic action space, dry-run-only posture)",
+    "agent-kit perps package (decision.ts): buildActionSpace / DecisionEngine with fail-closed judging",
+  ],
+};
+
 export const AGENT_TEMPLATES: readonly AgentTemplatePreset[] = [
   X402_AGENT,
   RAYDIUM_AGENT,
   PUMP_AGENT,
   STONK_AGENT,
   RWA_AGENT,
+  PERPS_AGENT,
+  DECISION_AGENT,
 ];
 
 export function getAgentTemplate(id: AgentTemplateId): AgentTemplatePreset {

@@ -7,13 +7,15 @@ import {
 } from "../src/presets";
 
 describe("template completeness", () => {
-  it("ships exactly the five venue presets, each fully specified", () => {
+  it("ships exactly the seven venue presets, each fully specified", () => {
     expect(AGENT_TEMPLATES.map((t) => t.id)).toEqual([
       "x402-agent",
       "raydium-agent",
       "pump-agent",
       "stonk-agent",
       "rwa-agent",
+      "perps-agent",
+      "decision-agent",
     ]);
     for (const t of AGENT_TEMPLATES) {
       expect(t.services.length).toBeGreaterThan(0);
@@ -51,6 +53,65 @@ describe("template completeness", () => {
         endpoints: { RWA: "https://agent.example/rwa" }, // trading endpoint missing
       }),
     ).toThrowError(/no endpoint supplied for service "trading"/);
+  });
+});
+
+describe("pump-agent v0.3 deepening", () => {
+  const pump = getAgentTemplate("pump-agent");
+
+  it("references the finance pump flow descriptors and the co-sign doctrine", () => {
+    const notes = pump.finance.notes.join("\n");
+    expect(notes).toMatch(/buildCreateCoinRequest/);
+    expect(notes).toMatch(/buildSwapRequest/);
+    expect(notes).toMatch(/buildAgentPaymentInvoice/);
+    expect(notes).toMatch(/fun-block\.pump\.fun/);
+    expect(notes).toMatch(/slippageBps is REQUIRED/);
+    expect(notes).not.toMatch(/ships NO pump\.fun SDK/);
+    expect(pump.sources.join(" ")).toMatch(/local-pump-agents-create-coin/);
+  });
+});
+
+describe("stonk-agent v0.3 correction", () => {
+  const stonk = getAgentTemplate("stonk-agent");
+
+  it("supersedes the v0.2 launch-disabled claim with the stats-gated two-path model", () => {
+    const all = [stonk.summary, ...stonk.finance.notes, ...stonk.requiredCaps].join("\n");
+    expect(all).toMatch(/CORRECTION vs v0\.2/);
+    expect(all).toMatch(/paidLaunchesEnabled/);
+    expect(all).toMatch(/chooseLaunchPath/);
+    expect(all).not.toMatch(/currently returns 503|API prepare-launch flow is currently DISABLED/);
+    expect(stonk.sources.join(" ")).toMatch(/Official Stonkfun Developer API/);
+  });
+
+  it("carries the LaunchLab traps and claim error semantics", () => {
+    const notes = stonk.finance.notes.join("\n");
+    expect(notes).toMatch(/transferFeeBasePoints\/maxinumFee/);
+    expect(notes).toMatch(/raise\.raw/);
+    expect(notes).toMatch(/creator-quote-vault/);
+    expect(notes).toMatch(/403 = no creator position/);
+  });
+});
+
+describe("perps-agent + decision-agent grounding (v0.3)", () => {
+  it("perps-agent covers both venue variants and marks Phoenix-direct as market-data only", () => {
+    const perps = getAgentTemplate("perps-agent");
+    const all = [perps.summary, ...perps.finance.notes, ...perps.requiredCaps].join("\n");
+    expect(all).toMatch(/IMPERIAL \(grounded\)/);
+    expect(all).toMatch(/PHOENIX-DIRECT \(market-data only\)/);
+    expect(all).toMatch(/slPrice/);
+    expect(all).toMatch(/evaluatePreTradeRisk/);
+    expect(perps.sources.join(" ")).toMatch(/clawd-agents-perps/);
+    expect(perps.sources.join(" ")).toMatch(/clawd-perps-agent/);
+  });
+
+  it("decision-agent encodes fail-closed judging and recall-never-widens", () => {
+    const decision = getAgentTemplate("decision-agent");
+    const all = [decision.summary, ...decision.finance.notes, ...decision.requiredCaps].join("\n");
+    expect(all).toMatch(/BLOCKED/);
+    expect(all).toMatch(/never widens the action space/);
+    expect(all).toMatch(/buildActionSpace/);
+    expect(all).toMatch(/allowLive: true/);
+    expect(decision.sources.join(" ")).toMatch(/jev-trader-solana/);
   });
 });
 
