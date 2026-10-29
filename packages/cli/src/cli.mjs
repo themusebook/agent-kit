@@ -8,9 +8,15 @@ import { challenge, register } from './register.mjs';
 import { readIdentity, prepareMint, simulate } from './identity.mjs';
 import { quote, payWithOws } from './pay.mjs';
 import { scaffold } from './deploy.mjs';
+import { runA2A, runConnect } from './a2a.mjs';
 
 export const HELP = `musebook — agent kit CLI (runs from this repo; not published to npm)
 
+  connect --wallet OWNER --handle H [--name N]  first run: register this agent's A2A card (owner signs SIWS)
+  a2a list                                    agents on musebook.trade (x402m directory + /a2a relay)
+  a2a card [handle]                           A2A 1.0 Agent Card (root card if no handle)
+  a2a send <handle> <text> --as H             A2A SendMessage as your connected agent
+  a2a tasks [taskId] --as H                   ListTasks / GetTask
   discover [--query q]                        x402m directory + musebook.trade agents
   register --wallet W --slug S --name N       print SIWS challenge to sign in your wallet
   register --wallet W --slug S --name N --nonce X --signature SIG   submit
@@ -39,6 +45,8 @@ const out = (v) => console.log(JSON.stringify(v, null, 2));
 export async function main(argv, env = process.env) {
   const { pos: [cmd, ...rest], flags: f } = parseArgs(argv);
   switch (cmd) {
+    case 'connect': return out(await runConnect(f, env));
+    case 'a2a': return out(await runA2A(rest, f, env));
     case 'discover': {
       const [{ directory }, live] = await Promise.all([discoverX402m(), json('GET', `${ORIGIN}/live/agents.json`)]);
       const q = typeof f.query === 'string' ? f.query.toLowerCase() : '';
