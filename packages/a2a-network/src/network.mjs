@@ -2,6 +2,7 @@
 //   identity   = MPL Core asset + Agent Registry identity PDA (+ Asset Signer PDA as the agent's wallet)
 //   membership = the asset belongs to the musebook network Core collection (and/or a team collection)
 //   routing    = the asset's registration document lists services[] { name: 'A2A' | 'x402m', endpoint }
+//   discovery  = DAS searchAssets { isAgent: true, interface: 'MplCoreAsset' } (+ grouping by collection)
 //   liveness   = off-chain (A2A relay last_seen / x402m directory); no per-heartbeat transactions
 import { ORIGIN } from './index.mjs';
 
@@ -43,18 +44,47 @@ export function verifyPeer({ asset, doc, collection, claimedHandle }) {
   return { ok: problems.length === 0, problems, route };
 }
 
-/** List network members via DAS getAssetsByGroup (any Helius/DAS RPC), resolving each route. */
-export async function discoverNetwork({ rpc, collection, fetchImpl = globalThis.fetch, limit = 100, fetchDoc }) {
-  if (!rpc || !collection) throw new Error(`rpc and collection required (set ${NETWORK_COLLECTION_ENV})`);
-  const r = await fetchImpl(rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 'mb-net', method: 'getAssetsByGroup', params: { groupKey: 'collection', groupValue: collection, page: 1, limit } }) });
+/** Registration URI: the AgentIdentity plugin's uri (DAS external_plugins), else the Core metadata json_uri. */
+export function registrationUri(asset) {
+  const p = (asset?.external_plugins || []).find((x) => x?.type === 'AgentIdentity');
+  return p?.adapter_config?.uri || asset?.content?.json_uri || null;
+}
+
+/**
+ * DAS searchAssets params for agent discovery (Metaplex read-agent-data docs):
+ * params are camelCase (isAgent, agentToken, assetSigner); responses come back
+ * snake_case (is_agent, asset_signer, agent_token). interface is pinned to
+ * MplCoreAsset so collections/groups (which may carry is_agent:false) are excluded.
+ */
+export function agentSearchParams({ collection, agentToken, assetSigner, owner, limit = 100, page = 1 } = {}) {
+  const p = { interface: 'MplCoreAsset', isAgent: true, limit, page };
+  if (collection) p.grouping = ['collection', collection];
+  if (agentToken) p.agentToken = agentToken;
+  if (assetSigner) p.assetSigner = assetSigner;
+  if (owner) p.ownerAddress = owner;
+  return p;
+}
+
+/**
+ * Discover agents via DAS searchAssets (isAgent:true, MplCoreAsset) on any
+ * DAS RPC with Metaplex agent-registry indexing, resolving each route from
+ * the AgentIdentity registration document. `collection` narrows to the
+ * musebook network collection; omit it to discover every registered agent.
+ */
+export async function discoverNetwork({ rpc, collection, agentToken, assetSigner, owner, fetchImpl = globalThis.fetch, limit = 100, page = 1, fetchDoc }) {
+  if (!rpc) throw new Error(`rpc required (a DAS RPC; optionally set ${NETWORK_COLLECTION_ENV} to narrow to the network collection)`);
+  const r = await fetchImpl(rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 'mb-net', method: 'searchAssets', params: agentSearchParams({ collection, agentToken, assetSigner, owner, limit, page }) }) });
+  if (r.ok === false) throw new Error(`DAS searchAssets: HTTP ${r.status}`);
   const j = await r.json();
   if (j.error) throw new Error(`DAS error: ${j.error.message}`);
-  const getDoc = fetchDoc || (async (uri) => (await fetchImpl(uri)).json());
+  const getDoc = fetchDoc || (async (uri) => { const d = await fetchImpl(uri); if (d.ok === false) throw new Error(`HTTP ${d.status}`); return d.json(); });
   const items = j.result?.items ?? [];
   return Promise.all(items.map(async (asset) => {
     let doc = null;
-    try { if (asset.content?.json_uri) doc = await getDoc(asset.content.json_uri); } catch { /* unreachable doc = unroutable */ }
+    const uri = registrationUri(asset);
+    try { if (uri) doc = await getDoc(uri); } catch { /* unreachable doc = unroutable */ }
     const v = verifyPeer({ asset, doc, collection });
-    return { asset: asset.id, owner: asset.ownership?.owner, name: asset.content?.metadata?.name, ...v };
+    if (asset.is_agent === false) { v.ok = false; v.problems.push('DAS is_agent is false'); }
+    return { asset: asset.id, owner: asset.ownership?.owner, name: asset.content?.metadata?.name ?? doc?.name, isAgent: asset.is_agent === true, assetSigner: asset.asset_signer ?? null, agentToken: asset.agent_token ?? null, registrationUri: uri, ...v };
   }));
 }

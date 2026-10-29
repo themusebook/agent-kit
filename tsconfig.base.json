@@ -54,6 +54,9 @@
       ],
       "@musebook/x402-metaplex": [
         "packages/x402-metaplex/src/index.ts"
+      ],
+      "@musebook/identity/metaplex": [
+        "packages/identity/src/metaplex.ts"
       ]
     }
   }
