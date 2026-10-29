@@ -5,3 +5,5 @@ siws-message.txt
 agent-mint.tx.*
 __pycache__/
 .venv/
+.env.*
+!.env.example
