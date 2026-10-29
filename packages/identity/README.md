@@ -12,7 +12,7 @@ MIT licensed.
 
 ## Metaplex agent read + run (unsigned)
 
-`checkRegistration`, `readAgentIdentityPlugin`, `readRegistrationDocument`, `readAgentWallet`,
+Import from `@musebook/identity/metaplex`. The main entry stays free of Metaplex deps. `checkRegistration`, `readAgentIdentityPlugin`, `readRegistrationDocument`, `readAgentWallet`,
 `dasGetAgent`, `dasSearchAgents`, `buildRegisterExecutive`, `buildDelegateExecution`,
 `verifyDelegation`, `buildRevokeExecution`, `buildCleanupApproval`. The builders return
 unsigned transactions for your own wallet to sign. Fund the Asset Signer, not the asset

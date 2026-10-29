@@ -11,6 +11,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./metaplex": {
+      "types": "./dist/metaplex.d.ts",
+      "default": "./dist/metaplex.js"
+    },
     "./package.json": "./package.json"
   },
   "dependencies": {

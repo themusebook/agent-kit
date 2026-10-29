@@ -4,7 +4,7 @@ Built from https://www.metaplex.com/docs/agents/read-agent-data and
 https://www.metaplex.com/docs/agents/run-an-agent, checked on 2026-10-29 against
 `@metaplex-foundation/mpl-agent-registry@0.2.6`, `mpl-core@1.10.0`, and `mpl-toolbox@0.10.0`.
 
-| Side | `@musebook/identity` | `musebook` CLI |
+| Side | `@musebook/identity/metaplex` | `musebook` CLI |
 | --- | --- | --- |
 | Registration (null when unregistered) | `checkRegistration` (safeFetchAgentIdentityV1), `fetchIdentityFromSeeds` (throws) | `agent read <asset>` |
 | AgentIdentity plugin (uri + transfer/update/execute) | `readAgentIdentityPlugin`, `agentIdentityPlugin` | `agent read` |
