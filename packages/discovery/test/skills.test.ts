@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  fetchSkillsCatalog,
   normalizeSkillEntry,
   parseSkillFrontmatter,
   searchSkills,
@@ -68,6 +69,58 @@ describe("skills catalog", () => {
     });
     expect(e.slug).toBe("anthropic-skills/claude-api");
     expect(e.category).toBe("Solana / Blockchain");
+  });
+
+  it("prefers the live hub API shape ({hub}/api/skills, with path/version)", async () => {
+    const seen: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        seen.push(url);
+        return {
+          ok: true,
+          status: 200,
+          json: async () => [
+            {
+              category: "General",
+              description: "Set up and use 1Password CLI (op).",
+              name: "1password",
+              path: "1password/SKILL.md",
+              slug: "1password",
+              version: null,
+            },
+          ],
+        };
+      }),
+    );
+    const entries = await fetchSkillsCatalog(config);
+    expect(seen[0]).toBe("https://musebook.trade/api/skills");
+    expect(entries).toHaveLength(1);
+    expect(entries[0].path).toBe("1password/SKILL.md");
+    expect(entries[0].version).toBeNull();
+    expect(entries[0].category).toBe("General");
+  });
+
+  it("falls back to the repo catalog.json when the live API errors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/api/skills")) {
+          return { ok: false, status: 404, json: async () => ({}) };
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => [
+            { slug: "ask-mcp", name: "ask-mcp", description: "DeepWiki answers.", category: "Solana / Blockchain" },
+          ],
+        };
+      }),
+    );
+    const entries = await fetchSkillsCatalog(config);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].slug).toBe("ask-mcp");
+    expect(entries[0].path).toBeNull();
   });
 
   it("searches the flat catalog list client-side", async () => {

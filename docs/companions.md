@@ -60,9 +60,13 @@ parsing only; installation stays with the skills tooling itself.
 
 ## musebook.trade/skills — the live skills surface
 
-The human page. Its machine-readable forms are the repo catalog above
-and the install tarball the hub serves at
-`{hub}/clawd-skills.tar.gz` (`skills/<slug>/SKILL.md` layout;
-`kit.discovery.skillsTarballUrl()`). The page itself is a
-client-rendered app with no JSON endpoint — the kit reads the catalog,
-which is the same data the tarball ships.
+The human page, backed by a live JSON catalog at
+`GET {hub}/api/skills` — a flat list of
+`{ slug, name, description, category, path, version }` (272 entries;
+`path` is the SKILL.md path inside the install tarball). The kit's
+catalog reads prefer this endpoint and fall back to the repo
+`catalog.json` (a broader, 599-entry lineage) when it is unavailable.
+The install tarball is served at `{hub}/clawd-skills.tar.gz`
+(`skills/<slug>/SKILL.md` layout; `kit.discovery.skillsTarballUrl()`).
+(`/live/skills.json` and `/skills.json` are not endpoints — the live one
+is `/api/skills`.)

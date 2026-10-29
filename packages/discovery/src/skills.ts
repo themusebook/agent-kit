@@ -19,17 +19,22 @@
  *     - Read
  *   ---
  *
- * The live site surface is musebook.trade/skills; its machine-readable
- * forms are this catalog and the install tarball served from the hub
- * ({hub}/clawd-skills.tar.gz, layout: skills/<slug>/SKILL.md + references).
- * The /skills page itself is a client-rendered app with no JSON endpoint
- * (probed 2026-10-29: /live/skills.json and /api/skills both 404), so the
- * kit reads the catalog — the same data the tarball ships.
+ * The live site surface is musebook.trade/skills, and the hub serves the
+ * live catalog at GET {hub}/api/skills — a flat list of
+ *   { slug, name, description, category, path, version }
+ * (272 entries, verified 2026-10-29; `path` is the SKILL.md path inside
+ * the install tarball, e.g. "1password/SKILL.md"). fetchSkillsCatalog
+ * prefers that live endpoint and falls back to the repo's catalog.json.
+ * The install tarball itself is at {hub}/clawd-skills.tar.gz
+ * (layout: skills/<slug>/SKILL.md + references). Note /live/skills.json
+ * and /skills.json are NOT endpoints (404) — /api/skills is the live one.
  */
 
 export interface SkillsConfig {
   hub: string;
-  /** Raw catalog.json URL. Default: the canonical skills repo on GitHub. */
+  /** Live catalog endpoint override. Default: {hub}/api/skills. */
+  apiUrl?: string;
+  /** Fallback catalog.json URL. Default: the canonical skills repo on GitHub. */
   catalogUrl?: string;
 }
 
@@ -39,11 +44,14 @@ export const DEFAULT_SKILLS_CATALOG_URL =
 export const SKILLS_REPO_URL = "https://github.com/themusebook/skills";
 
 export interface SkillCatalogEntry {
-  /** Path of the skill inside the repo/tarball: skills/<slug>/SKILL.md */
   slug: string;
   name: string;
   description: string | null;
   category: string | null;
+  /** SKILL.md path inside the install tarball (live API entries only). */
+  path: string | null;
+  /** Catalog version string, when the source provides one. */
+  version: string | null;
   raw: unknown;
 }
 
@@ -54,22 +62,38 @@ export function normalizeSkillEntry(raw: Record<string, unknown>): SkillCatalogE
     name: s(raw.name) ?? s(raw.slug) ?? "",
     description: s(raw.description),
     category: s(raw.category),
+    path: s(raw.path),
+    version: s(raw.version),
     raw,
   };
 }
 
-/** Fetch the full skills catalog (flat list in the repo's catalog.json). */
-export async function fetchSkillsCatalog(
-  config: SkillsConfig,
-): Promise<SkillCatalogEntry[]> {
-  const url = config.catalogUrl ?? DEFAULT_SKILLS_CATALOG_URL;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Skills catalog failed: HTTP ${res.status}`);
-  const body = (await res.json()) as unknown;
+function toEntries(body: unknown): SkillCatalogEntry[] {
   const list = Array.isArray(body)
     ? body
     : ((body as { skills?: unknown[] }).skills ?? []);
   return (list as Record<string, unknown>[]).map(normalizeSkillEntry);
+}
+
+/**
+ * Fetch the full skills catalog. Prefers the LIVE hub endpoint
+ * ({hub}/api/skills — the catalog musebook.trade/skills renders); falls
+ * back to the skills repo's catalog.json when the API is unavailable.
+ */
+export async function fetchSkillsCatalog(
+  config: SkillsConfig,
+): Promise<SkillCatalogEntry[]> {
+  const apiUrl = config.apiUrl ?? `${config.hub.replace(/\/$/, "")}/api/skills`;
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error(`Skills API failed: HTTP ${res.status}`);
+    return toEntries(await res.json());
+  } catch {
+    const url = config.catalogUrl ?? DEFAULT_SKILLS_CATALOG_URL;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Skills catalog failed: HTTP ${res.status}`);
+    return toEntries(await res.json());
+  }
 }
 
 /** Search the catalog by slug/name/description/category (client-side). */
