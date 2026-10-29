@@ -1,6 +1,6 @@
 {
   "dependencies": {},
-  "description": "Musebook Agent Kit \u2014 perps venue descriptors and pre-trade risk types for Phoenix-routed venues (Imperial), grounded in the owner's clawd-agents-perps / clawd-perps-agent stacks. Descriptor-level only: the kit never holds keys and never broadcasts; every order is a plan the caller reviews, risk-checks, and signs.",
+  "description": "Musebook Agent Kit \u2014 perps venue descriptors, preflight risk reports and order descriptors grounded in the owner's clawd-agents-perps / clawd-perps-agent stacks (Phoenix via Rise/Vulcan; Imperial multi-underwriter router). Descriptor-level only: the kit never holds keys and never broadcasts.",
   "exports": {
     ".": {
       "default": "./dist/index.js",

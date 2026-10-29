@@ -45,17 +45,27 @@ and `Solizardking/jev-trader-solana` (inspected read-only; see
 docs/perps.md for the overlap/difference analysis). Honest limits,
 stated in the package itself:
 
-- **Phoenix-direct is market-data only.** Both named venues are
-  covered, but no inspected source places a native Phoenix order —
-  Phoenix is reached through Imperial. The kit does not invent
-  placement semantics.
-- **Touch is catalog-level.** It exists in one repo as a vendored
-  catalog + stream (+ demo stub) and not at all in the other; the
-  Touch descriptor is explicitly not a submittable order.
-- **Leverage disagreement preserved:** bot presets default up to 5x,
-  the financial layer hard-caps 2x; the kit default follows 2x.
-- The source repos sign with raw env keypairs; the kit's caller-
-  signing doctrine is a deliberate divergence, documented in place.
+- **Topology as found, not as named:** Phoenix is the venue (Rise
+  SDK reads in clawd-agents-perps; a vendored stub in
+  clawd-perps-agent), Vulcan is the plan/preview layer, and
+  Imperial is a multi-underwriter ROUTER (Jupiter/Flash/Phoenix/
+  GMTrade) whose orders submit server-side under JWT, dry-run by
+  default. The kit describes exactly that.
+- **Absent features stay absent:** neither repo contains grid
+  quoting, TWAP slicing, Touch binaries, or any exposure/margin
+  check — the package says so instead of describing them.
+- **Two-layer risk, disagreement preserved:** preflight blocks at
+  $250/3x/40bps; the Imperial layer clamps at $100 instead of
+  blocking. Both behaviors are surfaced.
+- Signing in the source repos is server-side (Imperial JWT) or
+  external (browser desk / gated external runners) — no local
+  keypair trading path exists in either repo; the kit's
+  no-custody posture matches.
+- **Grounding correction:** an early draft of this package was
+  built on a faulty research pass (an "agentgateway" surface,
+  `slPrice` fields, `money.ts` thresholds, grid/TWAP/Touch). The
+  file-level re-inspection superseded it; docs/perps.md records
+  the correction.
 
 ## Deepened: pump-agent (finance)
 

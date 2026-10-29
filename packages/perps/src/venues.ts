@@ -1,107 +1,102 @@
 /**
- * Perps venue descriptors.
+ * Perps venue descriptors — grounded in the file-level inspection of
+ * Solizardking/clawd-agents-perps ("repo A") and
+ * Solizardking/clawd-perps-agent ("repo B"), 2026-10-29.
  *
- * Grounding (inspected 2026-10-29): Solizardking/clawd-agents-perps
- * and Solizardking/clawd-perps-agent are near-identical Imperial
- * stacks (the former adds Solana agent-registry/identity layers; the
- * latter financial-research modules). In BOTH, the tradeable venue is
- * **Imperial** — Phoenix-routed perps on Solana via the Vulcan / Rise
- * SDK (market making) and the `imperial` CLI (operator trading over
- * the agentgateway). Phoenix appears as Imperial's underlying routing
- * venue plus Phoenix market-data surfaces (Rise `PhoenixPerpsClient`,
- * orderbook/trades/funding readers); NEITHER repo contains a native
- * Phoenix order-placement integration.
+ * The topology is NOT "two venues, Phoenix and Imperial":
+ * - **Phoenix** is the perps venue. It is read through the Rise SDK
+ *   (`@ellipsis-labs/rise`, perp-api.phoenix.trade) in repo A; repo B
+ *   wraps a vendored STUB of the same surface (empty-success results)
+ *   with a fallback to the Vulcan binary. Vulcan is Phoenix's own
+ *   CLI/MCP execution-plan + catalog layer in both repos.
+ * - **Imperial** (api.imperial.space) is a ROUTER across four
+ *   underwriters — Jupiter (0), Flash Trade (1), Phoenix (2),
+ *   GMTrade (3) — with Phoenix the default. It is the one real
+ *   submission path in either repo, and it does not sign locally:
+ *   orders are submitted server-side under a JWT.
  *
- * So this module is honest about its two venue variants:
- * - `imperialVenue` — GROUNDED. Descriptors mirror the repos' actual
- *   shapes (see orders.ts for the field-level semantics).
- * - `phoenixDirectVenue` — NOT GROUNDED in the inspected repos. It is
- *   a market-data descriptor only (the workspace's local-phoenix skill
- *   covers Phoenix perps market data); order placement through a
- *   native Phoenix SDK is deliberately NOT described here, because
- *   nothing inspected implements it. Callers who need Phoenix-native
- *   placement integrate the Phoenix SDK directly — the kit will not
- *   invent its semantics.
+ * Neither repo is a live-trading codebase by default: both are
+ * observe/paper/preview systems with refuse-by-default live gates,
+ * and the kit's descriptors inherit that posture — plans only, the
+ * kit never holds keys and never broadcasts.
  *
- * Trading doctrine (same as finance): descriptors and plans only.
- * The kit never holds keys and never broadcasts; the caller signs.
+ * Repo differences that matter: A is the evolved perps copy (real
+ * Rise adapter, 13 typed read methods; HTTP server + Telegram +
+ * frontend; four perps test files). B is A's ancestor forked into a
+ * multi-rail "Financial Clawd" (0x swaps, RH launch, RWA hints,
+ * Blockscout truth) whose perps read plane is the stub. Same package
+ * name/version/bin (@solanaclawd/clawd-agents-perps@0.1.0);
+ * api.ts/env.ts/errors.ts are blob-identical across both.
  */
 
-export type PerpsVenueId = "imperial" | "phoenix-direct";
+export type PerpsVenueId = "phoenix" | "imperial";
 
 export interface PerpsVenueDescriptor {
   id: PerpsVenueId;
   name: string;
-  /** What routes the orders (for Imperial: Phoenix, via Vulcan/Rise + the agentgateway CLI). */
-  routing: string;
-  /** "grounded" = shapes mirror inspected source; "market-data-only" = reads grounded, placement NOT described. */
-  grounding: "grounded" | "market-data-only";
+  role: string;
   /** Read surfaces an agent may rely on (all read-only). */
   marketDataReads: string[];
-  /** Order capabilities this descriptor covers (empty = placement not described). */
+  /** Order capabilities this descriptor covers. */
   orderCapabilities: string[];
-  /** Program / SDK anchors from the source repos, when known. */
+  /** Endpoints / identifiers from the source repos. */
   anchors: Record<string, string>;
   notes: string[];
 }
 
-export const imperialVenue: PerpsVenueDescriptor = {
-  id: "imperial",
-  name: "Imperial (Phoenix-routed)",
-  routing:
-    "Phoenix perps, routed through Imperial: order placement goes through the agentgateway MCP/CLI (an `imperial-mcp` stdio tool surface, or the hosted HTTP gateway), with Rise SDK order functions vendored in-repo (placeLimitOrder / placeTwammOrder); market data comes from the Rise perp API and the Phoenix autobahn WebSocket; the `@phoenix-sdk/perps` package supplies Phoenix types (vendored type-only). A separate Rust Vulcan workspace in the source repos is a quoting catalog, not the TS order path.",
-  grounding: "grounded",
+export const phoenixVenue: PerpsVenueDescriptor = {
+  id: "phoenix",
+  name: "Phoenix (via Rise SDK + Vulcan)",
+  role:
+    "The perps venue itself. Market data and trader state are read through the Rise SDK (repo A) against perp-api.phoenix.trade; repo B substitutes a vendored stub with identical method names and empty-success results, falling back to the Vulcan binary. Vulcan (Phoenix's CLI/MCP) is the execution-plan/catalog layer: the runtime builds Vulcan plans and paper/live PREVIEWS — market orders only — and never calls Rise transaction senders.",
   marketDataReads: [
-    "Markets / order books / trades / funding / open interest (Rise perp API, keyless: perp-api.rise.trade)",
-    "Trader state, positions, balances, open orders (agentgateway MCP intel + trade reads; positions via this surface carry PnL + liquidation price)",
-    "Phoenix autobahn WebSocket: order books, trades, funding, price and trader-state streams",
-    "Touch market catalog + live bid/ask probability stream (touch.phoenix.trade) — catalog-level in the source repos; see the Touch note in orders.ts",
+    "listMarkets / getTicker / getAllTickers (PhoenixPerpMarketView / PhoenixTickerView: mark, spot, funding, OI, best bid/ask, mid, spreadBps)",
+    "getOrderbook(symbol, depth≤100), getCandles, getFundingRates, getMarketStats (repo A adapter)",
+    "getTraderState / getTraderSnapshot / getMarginView / getPositions (subaccounts carry collateral, margins, riskState/riskTier as DISPLAY fields)",
+    "health()",
   ],
   orderCapabilities: [
-    "limit orders — the price travels in the slPrice field (see orders.ts: the CLI JSON adapter builds slPrice and rejects price-only orders; a plain price never reaches the venue)",
-    "market orders with sizeInBaseLots",
-    "take-profit / stop-loss — attached AFTER the entry fills, as separate limit orders (the working stacks always send empty orderFlags; conditional flags are not the mechanism)",
-    "TWAMM orders (placeTwammOrder): a total size segmented across durationBlocks / intervalBlocks",
-    "grid market-making — volatility-scaled two-sided quote bands around mid (plan math grounded; the source bot's place/cancel grid loop is stubbed 'not wired')",
-    "reduce/close via negative sizeInBaseLots on the same market (the repos' own convention, not a documented API semantic)",
+    "preview-only in the perps runtime: previewPaperTrade (Vulcan paper-buy/paper-sell) and previewLiveTrade (route rise/order.place, blocked unless preflight ok) — nothing is signed or submitted by this layer",
   ],
   anchors: {
-    phoenixProgram: "4TNDfZHMtp4NsV3jNnH4KzJpDTxNuYJUoV2qerFKBE",
-    phoenixPlaza: "5nz4FqHvWcVL7wFaECB4cTXMkSxhF4rTVNULoWGrCDLF",
-    riseMarketData: "https://perp-api.rise.trade",
-    agentgatewayMcp: "https://mcp.agentgateway.dev",
-    phoenixAutobahnWs: "wss://autobahn.phoenix.trade/v2/ws",
-    touchRest: "https://touch.phoenix.trade",
+    riseApiBase: "https://perp-api.phoenix.trade",
+    riseSdk: "@ellipsis-labs/rise@0.4.19 (repo A; repo B vendors @openclawdsolana/clawd-perps stub instead)",
   },
   notes: [
-    "Signing in BOTH source repos is a raw local keypair loaded from env (RISE_WALLET_PRIVATE_KEY / SOLANA_PRIVATE_KEY_BASE58 / IMPERIAL_PRIVATE_KEY_BASE58); there are NO session keys or delegation anywhere in either repo. The kit deliberately diverges: its descriptors assume CALLER signing and hold no key at all — do not import the repos' env-keypair posture into a kit integration.",
-    "The two repos are near-identical: clawd.json is byte-identical, imperialBot.ts is byte-identical (30,817B); imperialAgent.ts and imperialWs.ts differ (agents-perps runs larger — it adds registry/identity layers; perps-agent adds financial-research modules + the only real tests).",
+    "Repo B's read plane is a STUB: its adapter returns empty-success results ({success:true, data:[]}) — treat B's Phoenix reads as placeholders, A's as the real surface.",
+    "No seat-state, margin-ratio or aggregate-exposure CHECK exists in either repo: margin/risk fields are displayed on trader views, never gated on.",
   ],
 };
 
-export const phoenixDirectVenue: PerpsVenueDescriptor = {
-  id: "phoenix-direct",
-  name: "Phoenix (direct)",
-  routing:
-    "Native Phoenix perps on Solana (program id as configured in the source repos: 4TNDfZHMtp4NsV3jNnH4KzJpDTxNuYJUoV2qerFKBE; Plaza 5nz4FqHvWcVL7wFaECB4cTXMkSxhF4rTVNULoWGrCDLF). In the owner's stacks Phoenix is reached THROUGH Imperial; no inspected repo places orders natively.",
-  grounding: "market-data-only",
+export const imperialVenue: PerpsVenueDescriptor = {
+  id: "imperial",
+  name: "Imperial (multi-underwriter router)",
+  role:
+    "A router across four underwriters — Jupiter (0), Flash Trade (1), Phoenix (2, the default), GMTrade (3) — not a venue itself. The one real submission path in either repo: POST /mobile/orders, server-side, under a JWT obtained by an externally-signed mobile-connect challenge. The client never sees a private key (wallet config is pubkey-only).",
   marketDataReads: [
-    "Phoenix perps market data (workspace skill local-phoenix)",
-    "Markets / books / trades / funding via the Rise perp API (public, keyless) and the Phoenix autobahn WebSocket",
+    "getStatus, getFundingRates, getMarkPrices, getPhoenixMarkPrices, getPhoenixDepth, getPhoenixMarkets",
+    "getFlashMarkets, getGMTradeMarkets, getGMTradeFundingRates (the router's reads span all four underwriters)",
+    "getPositions / getOrders / getTrades (?walletAddress=), getPassthroughOrders, getRoute (route recommendation), getPriorityFee",
+    "scoreImperialMarket: composite signal (momentum 0.40 + funding 0.40 + liquidity 0.20), ±0.25 → buy|sell|watch",
   ],
-  orderCapabilities: [],
+  orderCapabilities: [
+    "MobileCreateOrderRequest: action Increase|Decrease, side long|short, numeric OrderType (0 Market, 1 Limit, 2 StopLimit, 3 LandMine, 4 Ratchet, 6 RatchetEntry, 9 DCA, 10 FibRatchet, 11 FibRatchetEntry, 12 DcaClose, 13 DcaTimeClose, 14 DcaRatchetClose, 15 DcaTime, 16 DcaRatchet), sizeUsd (6-dec fixed), triggerPrice at 1e9 oracle scale + triggerCondition Above|Below",
+    "TP/SL via placeBatch({entry, closeOrders}): TP = Decrease Limit (condition Above), SL = Decrease StopLimit (condition Below), submitted WITH the entry as one batch",
+    "cancelOrder / updateOrder / editCollateral; buildDepositTx returns an UNSIGNED transaction",
+    "dry-run by default: placeOrder(req, dryRun = !config.live); a real submit requires IMPERIAL_LIVE=true AND a JWT",
+  ],
   anchors: {
-    phoenixProgram: "4TNDfZHMtp4NsV3jNnH4KzJpDTxNuYJUoV2qerFKBE",
+    imperialApiBase: "https://api.imperial.space/api/v1",
+    ordersEndpoint: "POST /mobile/orders",
+    batchEndpoint: "POST /mobile/orders/batch",
   },
   notes: [
-    "Order placement is NOT described: nothing in clawd-agents-perps / clawd-perps-agent implements native Phoenix placement, and the kit does not invent venue semantics. Use the imperialVenue descriptors (Phoenix-routed) or integrate the Phoenix SDK directly.",
+    "Imperial is not Phoenix-routed-by-default in the sense of a single venue: Phoenix is one of four underwriters (the default). Kit copy that calls Imperial 'the Phoenix venue' is wrong.",
+    "The Imperial layer CLAMPS oversize orders to its max (min(sizeUsd, maxSizeUsd)) where the perps preflight BLOCKS — see risk.ts; the kit surfaces both behaviors rather than picking one silently.",
   ],
 };
 
-export const PERPS_VENUES: readonly PerpsVenueDescriptor[] = [
-  imperialVenue,
-  phoenixDirectVenue,
-];
+export const PERPS_VENUES: readonly PerpsVenueDescriptor[] = [phoenixVenue, imperialVenue];
 
 export function getPerpsVenue(id: PerpsVenueId): PerpsVenueDescriptor {
   const v = PERPS_VENUES.find((x) => x.id === id);

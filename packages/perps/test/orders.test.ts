@@ -1,99 +1,114 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildGridPlan,
-  buildImperialPlaceOrder,
-  buildTakeProfitStopLossPlan,
-  buildTouchOrder,
-  buildTwammOrder,
+  ImperialOrderType,
+  ImperialUnderwriter,
+  buildImperialBatchPlan,
+  buildImperialOrder,
+  buildPerpsTradePreview,
+  buildTwammAutomationPlan,
 } from "../src/orders";
 import { PerpsValidationError } from "../src/errors";
 
-describe("buildImperialPlaceOrder", () => {
-  it("carries the limit price in slPrice (the venue's real semantic) and marks market orders slPrice 0", () => {
-    const limit = buildImperialPlaceOrder({
-      pairId: "SOL-PERP",
-      side: "bid",
-      sizeInBaseLots: 10,
-      limitPriceUsd: 150,
+const WALLET = "GThUX1Atko4tqhNho43ddSNSSEAy76orU8exuMp1yBSB";
+
+describe("buildImperialOrder — MobileCreateOrderRequest shape", () => {
+  it("defaults: Phoenix underwriter (2), Market (0), 50bps slippage, dryRun true", () => {
+    const d = buildImperialOrder({ wallet: WALLET, action: "increase", side: "long", sizeUsd: 80, symbol: "SOL" });
+    expect(d.endpoint).toBe("POST /mobile/orders");
+    expect(d.dryRun).toBe(true);
+    expect(d.request).toMatchObject({
+      action: 0,
+      side: 0,
+      underwriter: ImperialUnderwriter.Phoenix,
+      orderType: ImperialOrderType.Market,
+      slippageBps: 50,
+      profileIndex: 0,
     });
-    expect(limit.orderType).toBe("limit");
-    expect(limit.slPrice).toBe(150);
-    expect(limit.warnings.join(" ")).toMatch(/rejects price-only orders/);
-    const market = buildImperialPlaceOrder({ pairId: "SOL-PERP", side: "ask", sizeInBaseLots: 5 });
-    expect(market.orderType).toBe("market");
-    expect(market.slPrice).toBe(0);
+    expect(d.warnings.join(" ")).toMatch(/JWT/);
   });
 
-  it("flags negative size as reduce/close and rejects zero size", () => {
-    const close = buildImperialPlaceOrder({ pairId: "SOL-PERP", side: "ask", sizeInBaseLots: -10 });
-    expect(close.warnings.join(" ")).toMatch(/reduce\/close/);
+  it("carries limit triggers at 1e9 oracle scale and REQUIRES a trigger for Limit/StopLimit", () => {
+    const d = buildImperialOrder({
+      wallet: WALLET,
+      action: "increase",
+      side: "long",
+      sizeUsd: 50,
+      orderType: ImperialOrderType.Limit,
+      triggerPriceUsd: 150.5,
+      triggerCondition: "above",
+    });
+    expect(d.request.triggerPrice).toBe(150_500_000_000);
+    expect(d.request.triggerCondition).toBe(0);
     expect(() =>
-      buildImperialPlaceOrder({ pairId: "SOL-PERP", side: "bid", sizeInBaseLots: 0 }),
+      buildImperialOrder({
+        wallet: WALLET,
+        action: "increase",
+        side: "long",
+        sizeUsd: 50,
+        orderType: ImperialOrderType.StopLimit,
+      }),
     ).toThrow(PerpsValidationError);
+  });
+
+  it("exposes the exotic order types the repos carry (DCA / Ratchet / LandMine)", () => {
+    expect(ImperialOrderType.DCA).toBe(9);
+    expect(ImperialOrderType.LandMine).toBe(3);
+    expect(ImperialOrderType.FibRatchet).toBe(10);
+  });
+
+  it("validates profileIndex 0..5", () => {
+    expect(() =>
+      buildImperialOrder({ wallet: WALLET, profileIndex: 6, action: "increase", side: "long", sizeUsd: 10 }),
+    ).toThrow(/profileIndex/);
   });
 });
 
-describe("buildTakeProfitStopLossPlan", () => {
-  it("attaches TP/SL AFTER fill on the exit side — never as conditional flags", () => {
-    const plan = buildTakeProfitStopLossPlan({
-      positionSide: "long",
+describe("buildImperialBatchPlan — TP/SL submitted WITH the entry (placeBatch)", () => {
+  it("builds TP as Decrease Limit Above and SL as Decrease StopLimit Below for a long", () => {
+    const plan = buildImperialBatchPlan({
+      entry: { wallet: WALLET, action: "increase", side: "long", sizeUsd: 80, symbol: "SOL" },
       takeProfitPriceUsd: 180,
       stopLossPriceUsd: 140,
     });
-    expect(plan.attachAfterFill.takeProfit).toEqual({ side: "ask", limitPriceUsd: 180 });
-    expect(plan.attachAfterFill.stopLoss).toEqual({ side: "ask", limitPriceUsd: 140 });
-    expect(plan.warnings.join(" ")).toMatch(/empty orderFlags/);
-    const short = buildTakeProfitStopLossPlan({ positionSide: "short", stopLossPriceUsd: 160 });
-    expect(short.attachAfterFill.stopLoss?.side).toBe("bid");
+    expect(plan.endpoint).toBe("POST /mobile/orders/batch");
+    expect(plan.closeOrders).toHaveLength(2);
+    const [tp, sl] = plan.closeOrders;
+    expect(tp).toMatchObject({ action: 1, orderType: ImperialOrderType.Limit, triggerCondition: 0 });
+    expect(tp!.triggerPrice).toBe(180_000_000_000);
+    expect(sl).toMatchObject({ action: 1, orderType: ImperialOrderType.StopLimit, triggerCondition: 1 });
   });
-});
 
-describe("buildTwammOrder", () => {
-  it("builds a block-segmented distribution (placeTwammOrder shape), descriptor-level only", () => {
-    const d = buildTwammOrder({
-      marketId: 3,
-      side: "bid",
-      totalSize: 100,
-      durationBlocks: 1000,
-      intervalBlocks: 100,
+  it("inverts the conditions for a short entry", () => {
+    const plan = buildImperialBatchPlan({
+      entry: { wallet: WALLET, action: "increase", side: "short", sizeUsd: 80 },
+      takeProfitPriceUsd: 120,
+      stopLossPriceUsd: 160,
     });
-    expect(d.kind).toBe("imperialTwammOrder");
-    expect(d.totalSize).toBe(100);
-    expect(d.durationBlocks).toBe(1000);
-    expect(d.intervalBlocks).toBe(100);
-    expect(d.warnings.join(" ")).toMatch(/not a recurring order/);
-    expect(d.warnings.join(" ")).toMatch(/placeTwammOrder/);
-  });
-
-  it("rejects a seconds-shaped duration — TWAMM counts blocks", () => {
-    expect(() =>
-      buildTwammOrder({ marketId: 3, side: "bid", totalSize: 10, durationBlocks: 0 }),
-    ).toThrow(PerpsValidationError);
+    expect(plan.closeOrders[0]).toMatchObject({ triggerCondition: 1 }); // TP below
+    expect(plan.closeOrders[1]).toMatchObject({ triggerCondition: 0 }); // SL above
   });
 });
 
-describe("buildGridPlan", () => {
-  it("quotes inner ±(vol+0.5%) and outer ±(vol+(vol+2.5%)) around mid (imperialBot math)", () => {
-    const grid = buildGridPlan({ midUsd: 100, volatilityPct: 0.01 });
-    expect(grid.innerBandPct).toBeCloseTo(0.015);
-    const byBand = Object.fromEntries(grid.levels.map((l) => [`${l.band}-${l.side}`, l.priceUsd]));
-    expect(byBand["inner-bid"]).toBeCloseTo(98.5);
-    expect(byBand["inner-ask"]).toBeCloseTo(101.5);
-    expect(byBand["outer-bid"]).toBeCloseTo(95.5);
-    expect(byBand["outer-ask"]).toBeCloseTo(104.5);
+describe("buildPerpsTradePreview — the runtime only previews", () => {
+  it("routes paper to Vulcan paper-buy/sell and live to rise/order.place with the blocked flag", () => {
+    const paper = buildPerpsTradePreview({
+      symbol: "SOL", side: "buy", notionalUsd: 50, execution: "paper", preflightOk: true,
+    });
+    expect(paper.route).toMatchObject({ adapter: "vulcan", action: "paper-buy" });
+    const liveBlocked = buildPerpsTradePreview({
+      symbol: "SOL", side: "sell", notionalUsd: 50, execution: "live", preflightOk: false,
+    });
+    expect(liveBlocked.route).toMatchObject({ adapter: "rise", action: "order.place" });
+    expect(liveBlocked.route.payload.blocked).toBe(true);
+    expect(liveBlocked.warnings.join(" ")).toMatch(/REFUSAL/);
   });
 });
 
-describe("buildTouchOrder", () => {
-  it("builds a probability-priced Touch descriptor marked NOT a live order path", () => {
-    const t = buildTouchOrder({ marketId: "SOL-200-EOW", side: "YES", probabilityPrice: 0.35, size: 10 });
-    expect(t.probabilityPrice).toBe(0.35);
-    expect(t.warnings.join(" ")).toMatch(/NOT A LIVE ORDER PATH/);
-  });
-
-  it("rejects prices outside (0, 1) — Touch prices are probabilities", () => {
-    expect(() =>
-      buildTouchOrder({ marketId: "m", side: "YES", probabilityPrice: 1.2, size: 1 }),
-    ).toThrow(/probabilities/);
+describe("buildTwammAutomationPlan — external spot-AMM crank, NOT a perps order", () => {
+  it("describes the gated external bridge honestly", () => {
+    const plan = buildTwammAutomationPlan({ mode: "crank" });
+    expect(plan.externalWorkspace).toMatch(/twamm-master/);
+    expect(plan.warnings.join(" ")).toMatch(/not a perps TWAP/);
+    expect(plan.warnings.join(" ")).toMatch(/triple-gated/);
   });
 });

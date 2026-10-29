@@ -227,7 +227,7 @@ export const PERPS_AGENT: AgentTemplatePreset = {
   id: "perps-agent",
   name: "Perps Agent",
   summary:
-    "A perpetuals trading agent on Phoenix-routed venues. Venue variants: Imperial (Phoenix-routed — the grounded variant, via the kit's perps package) and Phoenix-direct (market-data only in this kit: no inspected source places native Phoenix orders). Every order is a descriptor the caller risk-checks and signs — the kit never holds keys and never broadcasts.",
+    "A perpetuals agent on the owner's perps stacks: Phoenix is the venue (read via the Rise SDK / Vulcan plan layer), Imperial is a multi-underwriter ROUTER (Jupiter/Flash/Phoenix/GMTrade, Phoenix default) and the one real submission path — server-side under JWT, dry-run by default. The kit's perps package mirrors the repos' preflight report, order shapes and refuse-by-default posture; it never holds keys and never broadcasts.",
   services: [
     { name: "trading", domains: ["perps", "phoenix", "imperial"] },
     { name: "market-data", domains: ["perps"] },
@@ -238,23 +238,24 @@ export const PERPS_AGENT: AgentTemplatePreset = {
     launchRoute: "none",
     notes: [
       "No token launch is implied by this preset: a perps agent's finance is margin + risk, not a launch route. (If the agent also wants a token, the Genesis route in finance applies independently.)",
-      "Venue variant IMPERIAL (grounded): @themusebook/agent-kit-perps describes orders in the shapes the owner's stacks use — limit price carried in slPrice, TP/SL attached AFTER fill as separate orders (the working bodies always send empty orderFlags), TWAMM block-segmented orders via placeTwammOrder, volatility-scaled grid plans, and Touch probability markets at catalog level (no live Touch order path exists in the sources).",
-      "Venue variant PHOENIX-DIRECT (market-data only): the owner's repos reach Phoenix THROUGH Imperial; no native Phoenix placement is described anywhere in the inspected sources, so the kit describes Phoenix reads only and does not invent placement semantics.",
-      "Risk gate (perps.evaluatePreTradeRisk) mirrors the source thresholds: $5 min / $1,000 max notional per order, 2x max leverage, $5,000 max total exposure, kill switch, empty-book refusal — refusals throw, they never warn-and-continue. Dry-run is the default posture.",
+      "Topology (file-verified): Phoenix = the venue — repo clawd-agents-perps reads it through a real @ellipsis-labs/rise adapter (13 typed methods, perp-api.phoenix.trade); repo clawd-perps-agent wraps a vendored STUB of the same surface (empty-success results) with a Vulcan-binary fallback. Vulcan is Phoenix's CLI/MCP plan/catalog layer: the runtime builds previews (paper → vulcan paper-buy/sell; live → rise/order.place with a blocked flag) and NEVER signs or sends.",
+      "Imperial = the router + submission path (@themusebook/agent-kit-perps descriptors): MobileCreateOrderRequest to POST /mobile/orders — action Increase|Decrease, side long|short, numeric OrderType (Market/Limit/StopLimit/LandMine/Ratchet/DCA/FibRatchet/…), sizeUsd, triggerPrice at 1e9 oracle scale; TP/SL ride WITH the entry via placeBatch closeOrders (TP = Decrease Limit, SL = Decrease StopLimit). Dry-run unless IMPERIAL_LIVE=true + JWT.",
+      "Risk (perps.buildPreflightReport, the repos' own model): a verdict REPORT {ok, blocking, warnings} — defaults SOL/ETH/BTC allowlist, $250 max notional, 3x max leverage, 40bps max spread, wallet required, live execution blocked unless mode is live (LIVE_TRADING + OPERATOR_CONFIRMED + PERPS_SIM_ONLY off; sim-only defaults ON). The Imperial layer is stricter ($100 max size, 50bps slippage) and CLAMPS oversize instead of blocking — both behaviors are surfaced, not merged.",
+      "Absent from both repos (do not invent): grid quoting, TWAP slicing, Touch binaries, and any aggregate-exposure/margin CHECK (margin fields are display-only). TWAMM is an external spot-AMM crank bridge, not a perps order type.",
     ],
   },
   requiredCaps: [
-    "Pre-trade risk check before EVERY order: kill switch off, book non-empty, notional/leverage/exposure inside caps — a RiskCheckError stops the trade, full stop.",
-    "Caller signs: BOTH source repos sign with a raw keypair loaded from env (no session keys, no delegation anywhere in them) — the kit deliberately diverges: descriptors are plans and signing is always the caller's own arrangement; never import the repos' env-keypair posture into a kit integration.",
-    "TP/SL discipline: never encode take-profit/stop-loss as conditional order flags — the working stacks always send empty orderFlags; attach separate reduce orders after the entry fills (bot presets default stopLossPct/takeProfitPct 2–5% / 4–10% by posture).",
-    "Price-field discipline: the limit price travels in slPrice; the CLI adapter rejects price-only orders — a transport that drops slPrice loses the price entirely.",
-    "PnL discipline: positions read through the agentgateway surface carry PnL + liquidation price; know which surface your decision read before acting on a position.",
+    "Preflight before EVERY order: run buildPreflightReport and treat any blocking entry as a stop — missing RPC/wallet, off-allowlist symbol, notional/leverage/spread over caps, or live execution while mode ≠ live.",
+    "Refuse-by-default arming: mode is live ONLY with LIVE_TRADING=true + OPERATOR_CONFIRMED=true + PERPS_SIM_ONLY off. The perps runtime itself never signs — signing/submission stay outside it (Imperial server-side under JWT; Phoenix desk in the browser).",
+    "JWT discipline (Imperial): the token comes from an externally-signed mobile-connect challenge (imperial:mobile-connect:{wallet}:{nonce}); wallet config is pubkey-only — no private key exists anywhere in these stacks' perps paths, and the kit holds neither JWT nor keys.",
+    "Clamp awareness: the Imperial layer silently clamps sizeUsd to its max ($100 default) where preflight would block — check clampImperialSize before assuming the submitted size equals the intended size.",
+    "Read-plane honesty: clawd-perps-agent's Phoenix reads come from a stub (empty-success) — decisions must read repo A's Rise surface or live data, never the stub's placeholders.",
   ],
   sources: [
-    "Solizardking/clawd-agents-perps (Imperial stack: imperialAgent/imperialBot/imperialWs, twammAutomation, vulcanCatalog; agent-registry identity layers)",
-    "Solizardking/clawd-perps-agent (near-identical Imperial core + financial/money.ts risk thresholds + financialClawd tests; agentgateway CLI order semantics)",
-    "agent-kit perps package (@themusebook/agent-kit-perps): venue descriptors, risk gate, order descriptors grounded in those repos",
-    "NOT grounded: native Phoenix order placement (absent from both repos) — see docs/perps.md for the full overlap/difference notes",
+    "Solizardking/clawd-agents-perps (real @ellipsis-labs/rise adapter phoenixRise.ts, config.ts preflight, imperialAgent/imperialBot order + batch shapes, twammAutomation/onchainMarketMaker external bridges, server/tests)",
+    "Solizardking/clawd-perps-agent (same package lineage; vendored @openclawdsolana/clawd-perps stub read plane, financialDomain/financialClawd rails — majority non-perps new code)",
+    "agent-kit perps package (@themusebook/agent-kit-perps): venue descriptors, preflight report, Imperial order/batch descriptors grounded in those repos",
+    "NOT in the repos: grid, TWAP, Touch, seat/exposure checks — see docs/perps.md for the full overlap/difference notes",
   ],
 };
 
