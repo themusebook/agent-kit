@@ -1,0 +1,23 @@
+[package]
+name = "agent-kit-desktop"
+version = "0.1.0"
+description = "musebook agent-kit desktop"
+edition = "2021"
+rust-version = "1.77"
+license = "MIT"
+
+[lib]
+name = "agent_kit_desktop_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "agent-kit-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+url = "2"
