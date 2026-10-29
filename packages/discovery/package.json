@@ -1,6 +1,6 @@
 {
   "name": "@themusebook/agent-kit-discovery",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Musebook Agent Kit \u2014 directory/registry search, provider inspection, x402m discovery + contentProfiles.",
   "license": "MIT",
   "type": "module",

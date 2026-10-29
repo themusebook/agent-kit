@@ -31,6 +31,12 @@
       "@themusebook/agent-kit-payments": [
         "packages/payments/src/index.ts"
       ],
+      "@themusebook/agent-kit-finance": [
+        "packages/finance/src/index.ts"
+      ],
+      "@themusebook/agent-kit-templates": [
+        "packages/templates/src/index.ts"
+      ],
       "@themusebook/agent-kit-wallet": [
         "packages/wallet/src/index.ts"
       ],

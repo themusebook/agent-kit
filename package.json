@@ -1,6 +1,6 @@
 {
   "name": "@themusebook/agent-kit-meta",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "Musebook Agent Kit \u2014 TypeScript SDK monorepo: onchain identity, agent auth, discovery and x402 payments for Solana agents.",
   "license": "MIT",

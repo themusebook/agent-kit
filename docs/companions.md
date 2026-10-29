@@ -70,3 +70,44 @@ The install tarball is served at `{hub}/clawd-skills.tar.gz`
 (`skills/<slug>/SKILL.md` layout; `kit.discovery.skillsTarballUrl()`).
 (`/live/skills.json` and `/skills.json` are not endpoints — the live one
 is `/api/skills`.)
+
+## The RWA repo — grounding for the rwa-agent template
+
+One of the owner's repos grounds the kit's RWA template — read-only;
+the kit changes it not (transferred to the themusebook org on
+2026-10-29; the earlier `Solizardking/solana-rwa-agents` URL redirects):
+
+- **themusebook/solana-rwa-agents** — a single repo containing BOTH:
+  - the RWA tokenization smart contract at `programs/rwa-tokenization`
+    (Anchor; placeholder program id
+    `RWA1111111111111111111111111111111111111111`). Program surface:
+    initialize (registration / tokenization / platform-bps fees) ·
+    register_asset · tokenize_asset · transfer_ownership ·
+    update_asset_metadata · verify_ownership · redeem_asset ·
+    set_asset_status (Active · Frozen · Liquidated · Redeemed);
+    asset types RealEstate · Commodity · Artwork ·
+    IntellectualProperty · BusinessEquity · Other.
+  - the pairing client (`agents/`: pairing · identity · launch ·
+    trade · catalog · execute, plus `agents/stonkfun.ts` and
+    `agents/vault.ts`) that binds a registered Metaplex agent to a
+    tokenized RWA and trades from the agent's Asset Signer PDA,
+    dry-run by default.
+
+> **Former name:** `Solana-RWA-Smart-Contract` was the former name of
+> this same repo — it was renamed to `solana-rwa-agents` (same
+> 2026-09-11 creation, same tree). `Solizardking/Solana-RWA-Smart-Contract`
+> no longer exists as a separate repo (verified 404), and the stale org
+> fork under the old name was deleted. Do not cite it as a separate
+> live repo; the contract claims above are grounded in
+> `themusebook/solana-rwa-agents` at `programs/rwa-tokenization`.
+
+The kit's `rwa-agent` template (docs/templates.md) is drawn from this
+repo file-by-file, and the finance/identity builders deliberately
+mirror its shapes: `GenesisLaunchPayload` →
+`finance.buildCreateAndRegisterLaunch`, `buildSetAgentToken` →
+`finance.buildSetAgentTokenV1`, `buildRegisterIdentity` →
+`identity.buildRegisterIdentityV1`, and its `Erc8004Registration` /
+`AgentService` types match `identity`'s registration model. The full
+mapping table lives in docs/templates.md. Executive/delegation
+builders (`registerExecutiveV1`, `delegateExecutionV1`,
+`revokeExecutionV1`) exist only in the RWA repo today.

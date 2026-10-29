@@ -28,8 +28,12 @@ const { agentId, apiKey } = await kit.auth.registerDirectory({
 });
 
 // 2. Mint the Metaplex identity, then derive the keyless treasury
+//    (`uri` = the onchain asset metadata URL; `agentMetadata` = the
+//    off-chain API record — two distinct fields, per the Metaplex docs)
 const { assetAddress } = await kit.identity.register({
-  name: "my-agent", metadataUri: "ipfs://<pinned-registration-doc>",
+  name: "my-agent",
+  uri: "https://example.com/my-agent-metadata.json",
+  agentMetadata: { name: "my-agent", description: "What my agent does" },
 });
 const treasury = kit.identity.assetSigner(assetAddress); // Asset Signer PDA
 
@@ -45,6 +49,26 @@ const receipt = await kit.payments.pay("https://example.com/paid-tool");
 console.log(agentId, treasury.toBase58(), other.isAgent, receipt.verified);
 ```
 
+## Beyond the quickstart (v0.2)
+
+```ts
+// Launch the agent's token on a Genesis bonding curve (payload builder —
+// submission runs through YOUR adapter/signer; creator fees default to
+// the Asset Signer PDA; graduation auto-migrates to a Raydium CPMM pool)
+const launch = kit.finance.buildLaunch({
+  wallet: myWallet,
+  agent: { mint: assetAddress, setToken: true }, // setToken is PERMANENT
+  token: { name: "My Agent", symbol: "AGENT", image: "https://gateway.irys.xyz/<img>" },
+});
+
+// Or start from a venue template (x402 / raydium / pump / stonk / rwa)
+const preset = kit.templates.get("rwa-agent");
+const doc = kit.templates.registration(preset, {
+  name: "my-agent", description: "…", image: "ipfs://<img>",
+  endpoints: { RWA: "https://agent.example/rwa", trading: "https://agent.example/trade" },
+});
+```
+
 ## Packages
 
 | Package | What it does |
@@ -53,8 +77,10 @@ console.log(agentId, treasury.toBase58(), other.isAgent, receipt.verified);
 | `@themusebook/agent-kit-identity` | EIP-8004 registration docs, hosted-API mint flow, DAS resolve/verify, Asset Signer PDA |
 | `@themusebook/agent-kit-auth` | SIWS sessions, directory register + API key, Agent Auth discover/register/grants |
 | `@themusebook/agent-kit-discovery` | Directory/registry search, provider inspection, x402m descriptor + contentProfiles |
-| `@themusebook/agent-kit-payments` | x402 pay + receipt verify, atomic-batch builder, x402m mailbox |
+| `@themusebook/agent-kit-payments` | x402 pay + receipt verify, the three Metaplex x402 modes (wallet / Core direct / Mech), atomic-batch builder, x402m mailbox |
 | `@themusebook/agent-kit-wallet` | OWS policy-gated signer interface, trust ladder gating |
+| `@themusebook/agent-kit-finance` | Genesis agent-token launch builders + the permanent setAgentTokenV1 binding (acknowledge-gated) |
+| `@themusebook/agent-kit-templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent |
 | `@themusebook/agent-kit-x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
 
 ## Agents in this kit
@@ -69,19 +95,27 @@ An agent has **two** wallets and they are never interchangeable: the
 holds revenue) and the **Muse OWS wallet** (policy-gated service signer for
 payments and operations). See [docs/two-wallets.md](docs/two-wallets.md).
 
-## Not in v0.1
+## Scope notes
 
-Token launch (read/verify of the `agent_token` binding only), any new
-onchain program, a published CLI (the experimental starter-kit CLI below
-runs from this repo only), browser wallet adapters beyond SIWS message
-signing, and any custody of user keys. See the release notes.
+v0.2 adds token-launch **builders** (Genesis payloads + the permanent
+token binding) — submission always runs through the caller's
+signer/adapter, and the kit still never holds keys. pump.fun and
+stonk.fun execution stay outside the kit (venue templates only). Still
+out of scope: any new onchain program, a published CLI (the experimental
+starter-kit CLI below runs from this repo only), browser wallet adapters
+beyond SIWS message signing, and any custody of user keys. See
+[docs/migration-v0.2.0.md](docs/migration-v0.2.0.md).
 
 ## Docs
 
 - [docs/architecture.md](docs/architecture.md) — the stack, layer by layer
 - [docs/two-wallets.md](docs/two-wallets.md) — the anti-conflation guide
 - [docs/security.md](docs/security.md) — policy denials are final; proposals are not authority
+- [docs/finance.md](docs/finance.md) — Genesis launches, creator-fee routing, the permanent token binding
+- [docs/commerce.md](docs/commerce.md) — the three x402 payment modes, Mech delegation, token storage
+- [docs/templates.md](docs/templates.md) — the five venue presets and their grounding
 - [docs/companions.md](docs/companions.md) — how the kit fits themusebook/agents, themusebook/skills, and the live /agents + /skills surfaces
+- [docs/migration-v0.2.0.md](docs/migration-v0.2.0.md) — what v0.2 added and the (small) breaking surface
 
 ## Starter kit: CLI, agents and services
 
