@@ -1,7 +1,6 @@
 {
-  "name": "@musebook/agent-kit-cli",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@musebook/cli",
+  "version": "0.1.1",
   "type": "module",
   "license": "MIT",
   "bin": {
@@ -20,5 +19,26 @@
     "@metaplex-foundation/umi-bundle-defaults": "^1.6.0",
     "@x402/svm": "2.29.0",
     "x402-messaging": "github:Solizardking/x402-messaging#ca122da"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

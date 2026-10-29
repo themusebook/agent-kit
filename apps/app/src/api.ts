@@ -1,4 +1,4 @@
-import { normalizeSnapshot, parseContentProfile, type DirectorySnapshot } from "@themusebook/agent-kit-discovery";
+import { normalizeSnapshot, parseContentProfile, type DirectorySnapshot } from "@musebook/discovery";
 
 /** Everything the dashboard reads goes through services/server via the /server proxy. */
 export const SERVER_BASE = "/server";

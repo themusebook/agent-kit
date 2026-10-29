@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   MusebookA2A, validateAgentCard, jsonRpcInterface, agentJwt, connect, clientFromIdentity,
   networkServices, routeFromRegistration, verifyPeer, discoverNetwork, MESSAGING_SCOPES,
-} from "@themusebook/agent-kit-a2a-network";
+} from "@musebook/a2a-network";
 
 const fx = (n: string) => JSON.parse(readFileSync(new URL(`./fixtures/${n}`, import.meta.url), "utf8"));
 const rootCard = fx("root-agent-card.json");

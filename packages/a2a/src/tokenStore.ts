@@ -12,7 +12,7 @@
  * - Persistence is the CALLER's explicit choice: implement
  *   `A2ATokenStore` against your own secret storage (vault, OS
  *   keychain, 0600 file) and pass it to `createA2AClient`. Mirrors the
- *   x402 24h-token-store pattern in @themusebook/agent-kit-payments —
+ *   x402 24h-token-store pattern in @musebook/payments —
  *   where a bearer secret sleeps is a security decision the kit must
  *   not make silently.
  */

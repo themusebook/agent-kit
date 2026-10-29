@@ -6,7 +6,7 @@ A Metaplex agent that owns, tokenizes and trades real-world assets, and pays for
 |---|---|
 | On-chain program `rwa_tokenization` (devnet `8CM5WK2EXXY9goXaTRnmKvFAxiSfVAmmTWBVX7X5zvBc`) | [Solizardking/solana-rwa-agents](https://github.com/Solizardking/solana-rwa-agents) `devnet-deploy` |
 | Register/tokenize builders, RWA reads, AMM/Raydium trading, copilot `get_rwa_asset` | [Solizardking/clawd-pump-hybrid](https://github.com/Solizardking/clawd-pump-hybrid) `feat/rwa-agents` |
-| Paying for inference / RPC from the agent's Asset Signer PDA | `@themusebook/agent-kit-x402-metaplex` (`rwaAgentX402Tools`) |
+| Paying for inference / RPC from the agent's Asset Signer PDA | `@musebook/x402-metaplex` (`rwaAgentX402Tools`) |
 
 Run the clawd backend locally, then:
 ```bash

@@ -1,4 +1,4 @@
-import type { MessageSigner } from "@themusebook/agent-kit-wallet";
+import type { MessageSigner } from "@musebook/wallet";
 
 export type Network = "devnet" | "mainnet-beta";
 

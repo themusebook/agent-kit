@@ -1,4 +1,4 @@
-import type { MessageSigner } from "@themusebook/agent-kit-wallet";
+import type { MessageSigner } from "@musebook/wallet";
 import { getSiwsChallenge, verifySiwsChallenge, type AuthConfig } from "./siws";
 
 /**

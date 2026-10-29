@@ -1,4 +1,4 @@
-# Perps + decision agents (`@themusebook/agent-kit-perps`)
+# Perps + decision agents (`@musebook/perps`)
 
 Two v0.3 additions share one package: **perps venue descriptors, the
 preflight risk report and order descriptors** (for the `perps-agent`

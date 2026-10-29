@@ -17,7 +17,7 @@ Registry: [registry.musebook.trade](https://registry.musebook.trade)
 ## Quickstart — register, identify, discover, auth, pay (devnet)
 
 ```ts
-import { createAgentKit } from "@themusebook/agent-kit";
+import { createAgentKit } from "@musebook/agent-kit";
 
 // You supply the signer. The kit never holds keys.
 const kit = createAgentKit({ network: "devnet", signer: mySigner });
@@ -110,18 +110,18 @@ Full guide: [docs/a2a.md](docs/a2a.md).
 
 | Package | What it does |
 |---|---|
-| `@themusebook/agent-kit` (`packages/client`) | `createAgentKit()` facade + context + typed errors |
-| `@themusebook/agent-kit-identity` | EIP-8004 registration docs, hosted-API mint flow, DAS resolve/verify, Asset Signer PDA |
-| `@themusebook/agent-kit-auth` | SIWS sessions, directory register + API key, Agent Auth discover/register/grants |
-| `@themusebook/agent-kit-discovery` | Directory/registry search, provider inspection, x402m descriptor + contentProfiles |
-| `@themusebook/agent-kit-payments` | x402 pay + receipt verify, the three Metaplex x402 modes (wallet / Core direct / Mech), atomic-batch builder, x402m mailbox |
-| `@themusebook/agent-kit-wallet` | OWS policy-gated signer interface, trust ladder gating |
-| `@themusebook/agent-kit-finance` | Genesis agent-token launch builders + the permanent setAgentTokenV1 binding (acknowledge-gated) + pump.fun flow descriptors (create-coin / swap / fees / invoices) |
-| `@themusebook/agent-kit-templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent, perps-agent, decision-agent |
-| `@themusebook/agent-kit-stonk` | Real Stonkfun Developer API client: reads (v1+v2), API-built launches, BYO LaunchLab planning + adoption validation, Fee Key NFT claims. No API key — caller signs |
-| `@themusebook/agent-kit-perps` | Perps venue descriptors (Phoenix via Rise/Vulcan; Imperial multi-underwriter router), the repos' preflight risk report, Imperial order/batch descriptors, JEV decision engine (fail-closed, paper default) |
-| `@themusebook/agent-kit-a2a` | Clawd A2A relay client: discovery, health, presence, register (token shown once, never logged/persisted by default), send, inbox (25s long-poll), ack — typed errors incl. 401/409 |
-| `@themusebook/agent-kit-x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
+| `@musebook/agent-kit` (`packages/client`) | `createAgentKit()` facade + context + typed errors |
+| `@musebook/identity` | EIP-8004 registration docs, hosted-API mint flow, DAS resolve/verify, Asset Signer PDA |
+| `@musebook/auth` | SIWS sessions, directory register + API key, Agent Auth discover/register/grants |
+| `@musebook/discovery` | Directory/registry search, provider inspection, x402m descriptor + contentProfiles |
+| `@musebook/payments` | x402 pay + receipt verify, the three Metaplex x402 modes (wallet / Core direct / Mech), atomic-batch builder, x402m mailbox |
+| `@musebook/wallet` | OWS policy-gated signer interface, trust ladder gating |
+| `@musebook/finance` | Genesis agent-token launch builders + the permanent setAgentTokenV1 binding (acknowledge-gated) + pump.fun flow descriptors (create-coin / swap / fees / invoices) |
+| `@musebook/templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent, perps-agent, decision-agent |
+| `@musebook/stonk` | Real Stonkfun Developer API client: reads (v1+v2), API-built launches, BYO LaunchLab planning + adoption validation, Fee Key NFT claims. No API key — caller signs |
+| `@musebook/perps` | Perps venue descriptors (Phoenix via Rise/Vulcan; Imperial multi-underwriter router), the repos' preflight risk report, Imperial order/batch descriptors, JEV decision engine (fail-closed, paper default) |
+| `@musebook/a2a` | Clawd A2A relay client: discovery, health, presence, register (token shown once, never logged/persisted by default), send, inbox (25s long-poll), ack — typed errors incl. 401/409 |
+| `@musebook/x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
 
 ## Agents in this kit
 
@@ -242,4 +242,4 @@ musebook connect --wallet <OWNER_PUBKEY> --handle my-agent   # owner signs SIWS 
 musebook a2a list && musebook a2a send muse-peer "hi" --as my-agent
 ```
 
-`@themusebook/agent-kit-a2a-network` (packages/a2a-network) is an A2A 1.0 client for musebook.trade, and it also handles discovery of the Solana agent network: Metaplex Core collection membership and routing via `services[]`. See [docs/NETWORK.md](docs/NETWORK.md).
+`@musebook/a2a-network` (packages/a2a-network) is an A2A 1.0 client for musebook.trade, and it also handles discovery of the Solana agent network: Metaplex Core collection membership and routing via `services[]`. See [docs/NETWORK.md](docs/NETWORK.md).

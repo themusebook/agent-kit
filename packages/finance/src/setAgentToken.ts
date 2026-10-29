@@ -2,7 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 import {
   deriveAgentIdentityPda,
   deriveAssetSignerPda,
-} from "@themusebook/agent-kit-identity";
+} from "@musebook/identity";
 import { GenesisValidationError, PermanentBindingRefusalError } from "./errors";
 
 /**

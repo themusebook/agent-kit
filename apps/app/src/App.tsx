@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import type { DirectorySnapshot } from "@themusebook/agent-kit-discovery";
-import type { ResolvedAgent } from "@themusebook/agent-kit-identity";
+import type { DirectorySnapshot } from "@musebook/discovery";
+import type { ResolvedAgent } from "@musebook/identity";
 import { filterAgents, inboxStatus, type Api, type Health, type Routine, type X402mSummary } from "./api";
 import { mintWithWallet, readIdentity, registrationDraft, rpcUrl } from "./actions";
 import { findProvider } from "./wallet";

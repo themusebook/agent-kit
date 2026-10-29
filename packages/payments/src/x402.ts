@@ -1,4 +1,4 @@
-import type { MessageSigner } from "@themusebook/agent-kit-wallet";
+import type { MessageSigner } from "@musebook/wallet";
 
 /**
  * x402 payments against the Musebook facilitator.

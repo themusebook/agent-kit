@@ -6,6 +6,6 @@
   "license": "MIT",
   "type": "module",
   "scripts": { "start": "tsx main.ts" },
-  "dependencies": { "@themusebook/agent-kit-x402-metaplex": "workspace:*" },
+  "dependencies": { "@musebook/x402-metaplex": "workspace:*" },
   "devDependencies": { "tsx": "^4.7.0" }
 }

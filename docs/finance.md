@@ -1,4 +1,4 @@
-# Finance — agent tokens (`@themusebook/agent-kit-finance`)
+# Finance — agent tokens (`@musebook/finance`)
 
 The finance package covers the agent-token lifecycle as **typed builders
 plus caller-supplied submission adapters**. The kit builds and validates
@@ -103,5 +103,5 @@ transaction before signing.
 - No bonding-curve trading, sniping, or market making — launch +
   binding, plus the pump flow descriptors above.
 - No stonk.fun surface — that venue has its own real client package
-  now (`@themusebook/agent-kit-stonk`, docs/stonk.md).
+  now (`@musebook/stonk`, docs/stonk.md).
 - No custody: payloads are data; signing belongs to the caller.

@@ -1,4 +1,4 @@
-# Stonkfun (`@themusebook/agent-kit-stonk`)
+# Stonkfun (`@musebook/stonk`)
 
 A real client for the **official Stonkfun Developer API**
 (stonkfun.xyz) — the kit's `stonk-agent` preset is backed by this
@@ -34,7 +34,7 @@ pricing and all writes. The client maps both error shapes onto
 429s onto `StonkRateLimitError` with the `Retry-After` value.
 
 ```ts
-import { createAgentKit } from "@themusebook/agent-kit";
+import { createAgentKit } from "@musebook/agent-kit";
 const kit = createAgentKit({ signer });
 
 // Which launch path is live RIGHT NOW — never hardcode it.

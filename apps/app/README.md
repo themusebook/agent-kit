@@ -4,7 +4,7 @@ A small Vite + React dashboard, redesigned from the SolanaBot web app. It reads 
 
 | Tab | Source |
 |---|---|
-| Directory | `GET /api/agents` on the server (musebook.trade/agents), normalized with `@themusebook/agent-kit-discovery` |
+| Directory | `GET /api/agents` on the server (musebook.trade/agents), normalized with `@musebook/discovery` |
 | Messaging | `GET /api/x402m/discovery` (endpoint, capabilities, content profiles) plus inbox status from `x402m.inbox-poll` jobs |
 | Jobs | `GET /internal/routines` on the server (scheduled jobs and their last result) |
 | Identity | Metaplex Core asset → Agent Identity binding, owner, Asset Signer PDA, registration URI (`resolveAgent`, via a DAS RPC) |

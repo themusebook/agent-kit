@@ -7,8 +7,8 @@
   "type": "module",
   "scripts": { "start": "tsx main.ts" },
   "dependencies": {
-    "@themusebook/agent-kit": "workspace:*",
-    "@themusebook/agent-kit-x402-metaplex": "workspace:*"
+    "@musebook/agent-kit": "workspace:*",
+    "@musebook/x402-metaplex": "workspace:*"
   },
   "devDependencies": { "tsx": "^4.7.0" }
 }

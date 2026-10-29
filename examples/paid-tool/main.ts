@@ -9,8 +9,8 @@
  * This example is the CALLER side + the pricing/gating contract, kept
  * framework-free so it drops into any HTTP handler.
  */
-import { createAgentKit } from "@themusebook/agent-kit";
-import { deriveAssetSignerPda } from "@themusebook/agent-kit";
+import { createAgentKit } from "@musebook/agent-kit";
+import { deriveAssetSignerPda } from "@musebook/agent-kit";
 import { devnetSigner } from "../quickstart/signer";
 
 const MY_ASSET = process.env.AGENT_ASSET ?? "<your MPL Core asset address>";

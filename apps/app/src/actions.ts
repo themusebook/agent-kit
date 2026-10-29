@@ -1,6 +1,6 @@
 import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { buildRegistrationDocument, registerIdentity, resolveAgent, validateRegistrationDocument } from "@themusebook/agent-kit-identity";
-import { buildAtomicBatch, type BatchItem } from "@themusebook/agent-kit-payments";
+import { buildRegistrationDocument, registerIdentity, resolveAgent, validateRegistrationDocument } from "@musebook/identity";
+import { buildAtomicBatch, type BatchItem } from "@musebook/payments";
 import { walletSigner, toBase64, type InjectedSolanaProvider } from "./wallet";
 
 /** All chain reads and sends go through the /rpc proxy (keyed RPC stays server-side). */

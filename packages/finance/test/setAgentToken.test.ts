@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deriveAssetSignerPda } from "@themusebook/agent-kit-identity";
+import { deriveAssetSignerPda } from "@musebook/identity";
 import { buildSetAgentTokenV1 } from "../src/setAgentToken";
 import { PermanentBindingRefusalError } from "../src/errors";
 

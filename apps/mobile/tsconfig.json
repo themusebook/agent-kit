@@ -4,22 +4,22 @@
     "strict": true,
     "skipLibCheck": true,
     "paths": {
-      "@themusebook/agent-kit-identity": [
+      "@musebook/identity": [
         "../../packages/identity/src/index.ts"
       ],
-      "@themusebook/agent-kit-discovery": [
+      "@musebook/discovery": [
         "../../packages/discovery/src/index.ts"
       ],
-      "@themusebook/agent-kit-payments": [
+      "@musebook/payments": [
         "../../packages/payments/src/index.ts"
       ],
-      "@themusebook/agent-kit-wallet": [
+      "@musebook/wallet": [
         "../../packages/wallet/src/index.ts"
       ],
       "@solana/web3.js": [
         "./node_modules/@solana/web3.js"
       ],
-      "@themusebook/agent-kit-auth": [
+      "@musebook/auth": [
         "../../packages/auth/src/index.ts"
       ]
     }

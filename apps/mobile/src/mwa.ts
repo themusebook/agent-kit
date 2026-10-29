@@ -1,6 +1,6 @@
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import type { Web3MobileWallet } from "@solana-mobile/mobile-wallet-adapter-protocol-web3js";
-import type { TransactionSigner } from "@themusebook/agent-kit-wallet";
+import type { TransactionSigner } from "@musebook/wallet";
 
 /**
  * Mobile Wallet Adapter signing. Every signature happens in the user's wallet

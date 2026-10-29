@@ -9,7 +9,7 @@ import {
   buildRegistrationDocument,
   validateRegistrationDocument,
   type RegisterIdentityInput,
-} from "@themusebook/agent-kit-identity";
+} from "@musebook/identity";
 import {
   siwsSignIn,
   registerDirectory,
@@ -19,7 +19,7 @@ import {
   readDelegation,
   type DirectoryProfile,
   type AgentRegistrationInput,
-} from "@themusebook/agent-kit-auth";
+} from "@musebook/auth";
 import {
   searchDirectory,
   getDirectoryAgent,
@@ -31,7 +31,7 @@ import {
   searchSkills,
   skillsTarballUrl,
   type MessagingDescriptor,
-} from "@themusebook/agent-kit-discovery";
+} from "@musebook/discovery";
 import {
   parsePaymentChallenge,
   payChallenge,
@@ -41,14 +41,14 @@ import {
   type PaymentReceipt,
   type PaymentsConfig,
   type SignPayment,
-} from "@themusebook/agent-kit-payments";
+} from "@musebook/payments";
 import {
   meetsTrust,
   requiredTrust,
   type MessageSigner,
   type TransactionSigner,
   type TrustLevel,
-} from "@themusebook/agent-kit-wallet";
+} from "@musebook/wallet";
 import {
   buildCreateAndRegisterLaunch,
   buildSetAgentTokenV1,
@@ -56,14 +56,14 @@ import {
   type CreateAndRegisterLaunchPayload,
   type SetAgentTokenV1Descriptor,
   type SetAgentTokenV1Input,
-} from "@themusebook/agent-kit-finance";
+} from "@musebook/finance";
 import {
   AGENT_TEMPLATES,
   buildTemplateRegistration,
   getAgentTemplate,
   type AgentTemplateId,
   type AgentTemplatePreset,
-} from "@themusebook/agent-kit-templates";
+} from "@musebook/templates";
 import {
   createA2AClient,
   connectA2A,
@@ -71,12 +71,12 @@ import {
   type A2AClientConfig,
   type A2ARegisterInput,
   type ConnectA2AResult,
-} from "@themusebook/agent-kit-a2a";
+} from "@musebook/a2a";
 import {
   createStonkClient,
   type StonkClient,
   type StonkClientConfig,
-} from "@themusebook/agent-kit-stonk";
+} from "@musebook/stonk";
 import {
   PERPS_VENUES,
   buildActionSpace,
@@ -89,7 +89,7 @@ import {
   getPerpsVenue,
   resolveTradingMode,
   type PerpsVenueDescriptor,
-} from "@themusebook/agent-kit-perps";
+} from "@musebook/perps";
 import {
   createContext,
   type AgentKitOptions,
@@ -113,30 +113,30 @@ export interface AgentKit {
   readonly context: KitContext;
   readonly trustLevel: TrustLevel;
   identity: {
-    register(input: Omit<RegisterIdentityInput, "signer">): Promise<import("@themusebook/agent-kit-identity").RegisterIdentityResult>;
-    resolve(asset: string): Promise<import("@themusebook/agent-kit-identity").ResolvedAgent>;
+    register(input: Omit<RegisterIdentityInput, "signer">): Promise<import("@musebook/identity").RegisterIdentityResult>;
+    resolve(asset: string): Promise<import("@musebook/identity").ResolvedAgent>;
     /** Resolve from a directory record (snapshot/agents-repo shape) — no RPC. */
-    resolveRecord(record: import("@themusebook/agent-kit-identity").DirectoryRecordLike): import("@themusebook/agent-kit-identity").ResolvedAgent;
+    resolveRecord(record: import("@musebook/identity").DirectoryRecordLike): import("@musebook/identity").ResolvedAgent;
     verify(asset: string): Promise<{ ok: boolean; problems: string[] }>;
     assetSigner(asset: string): ReturnType<typeof deriveAssetSignerPda>;
     registrationDocument(uri: string): Promise<unknown>;
   };
   auth: {
-    signIn(): Promise<import("@themusebook/agent-kit-auth").SiwsSession>;
-    registerDirectory(profile: DirectoryProfile): Promise<import("@themusebook/agent-kit-auth").DirectoryRegistration>;
-    discover(providerUrl?: string): Promise<import("@themusebook/agent-kit-auth").AgentConfiguration>;
-    registerAgent(input: AgentRegistrationInput, sessionToken?: string | null): Promise<import("@themusebook/agent-kit-auth").AgentRegistrationResult>;
-    pollGrant(configuration: import("@themusebook/agent-kit-auth").AgentConfiguration, grantId: string): Promise<string>;
-    delegation(asset: string): Promise<import("@themusebook/agent-kit-auth").DelegationInfo>;
+    signIn(): Promise<import("@musebook/auth").SiwsSession>;
+    registerDirectory(profile: DirectoryProfile): Promise<import("@musebook/auth").DirectoryRegistration>;
+    discover(providerUrl?: string): Promise<import("@musebook/auth").AgentConfiguration>;
+    registerAgent(input: AgentRegistrationInput, sessionToken?: string | null): Promise<import("@musebook/auth").AgentRegistrationResult>;
+    pollGrant(configuration: import("@musebook/auth").AgentConfiguration, grantId: string): Promise<string>;
+    delegation(asset: string): Promise<import("@musebook/auth").DelegationInfo>;
   };
   discovery: {
-    search(query: string, limit?: number): Promise<import("@themusebook/agent-kit-discovery").DirectoryAgent[]>;
-    agent(idOrWallet: string): Promise<import("@themusebook/agent-kit-discovery").DirectoryAgent | null>;
-    snapshot(): Promise<import("@themusebook/agent-kit-discovery").DirectorySnapshot>;
-    skills(query?: string, limit?: number): Promise<import("@themusebook/agent-kit-discovery").SkillCatalogEntry[]>;
-    skillsCatalog(): Promise<import("@themusebook/agent-kit-discovery").SkillCatalogEntry[]>;
+    search(query: string, limit?: number): Promise<import("@musebook/discovery").DirectoryAgent[]>;
+    agent(idOrWallet: string): Promise<import("@musebook/discovery").DirectoryAgent | null>;
+    snapshot(): Promise<import("@musebook/discovery").DirectorySnapshot>;
+    skills(query?: string, limit?: number): Promise<import("@musebook/discovery").SkillCatalogEntry[]>;
+    skillsCatalog(): Promise<import("@musebook/discovery").SkillCatalogEntry[]>;
     skillsTarballUrl(): string;
-    provider(url?: string): Promise<import("@themusebook/agent-kit-discovery").ProviderSummary>;
+    provider(url?: string): Promise<import("@musebook/discovery").ProviderSummary>;
     messagingDescriptor(baseUrl?: string): Promise<MessagingDescriptor>;
     messagingProfiles(agent: { registrationUri: string | null } | MessagingDescriptor): Promise<string[]>;
   };
@@ -177,7 +177,7 @@ export interface AgentKit {
   /**
    * Perps venue descriptors, the pre-trade risk gate, order
    * descriptors and the JEV decision engine (all pure — callers sign
-   * and submit; see @themusebook/agent-kit-perps).
+   * and submit; see @musebook/perps).
    */
   perps: {
     venues: readonly PerpsVenueDescriptor[];

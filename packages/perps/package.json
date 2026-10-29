@@ -1,16 +1,40 @@
 {
   "dependencies": {},
-  "description": "Musebook Agent Kit \u2014 perps venue descriptors, preflight risk reports and order descriptors grounded in the owner's clawd-agents-perps / clawd-perps-agent stacks (Phoenix via Rise/Vulcan; Imperial multi-underwriter router). Descriptor-level only: the kit never holds keys and never broadcasts.",
+  "description": "Musebook Agent Kit — perps venue descriptors, preflight risk reports and order descriptors grounded in the owner's clawd-agents-perps / clawd-perps-agent stacks (Phoenix via Rise/Vulcan; Imperial multi-underwriter router). Descriptor-level only: the kit never holds keys and never broadcasts.",
   "exports": {
     ".": {
-      "default": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "license": "MIT",
-  "main": "dist/index.js",
-  "name": "@themusebook/agent-kit-perps",
+  "main": "./dist/index.js",
+  "name": "@musebook/perps",
   "type": "module",
-  "types": "dist/index.d.ts",
-  "version": "0.3.0"
+  "types": "./dist/index.d.ts",
+  "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/perps"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/perps#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
+  }
 }

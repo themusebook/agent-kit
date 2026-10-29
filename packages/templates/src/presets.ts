@@ -3,7 +3,7 @@ import {
   type RegistrationDocument,
   type RegistrationService,
   type SupportedTrustMode,
-} from "@themusebook/agent-kit-identity";
+} from "@musebook/identity";
 
 /**
  * Venue agent templates: first-class presets that pair registration-
@@ -157,7 +157,7 @@ export const STONK_AGENT: AgentTemplatePreset = {
   id: "stonk-agent",
   name: "Stonk Agent",
   summary:
-    "An agent on stonk.fun (Stonkfun launchpad) backed by the kit's REAL Stonkfun Developer API client (@themusebook/agent-kit-stonk): reads, API-built launches, BYO LaunchLab launch plans, and Fee Key NFT fee claims. Non-custodial — no API key exists; the caller's wallet signature authorizes launches and claims.",
+    "An agent on stonk.fun (Stonkfun launchpad) backed by the kit's REAL Stonkfun Developer API client (@musebook/stonk): reads, API-built launches, BYO LaunchLab launch plans, and Fee Key NFT fee claims. Non-custodial — no API key exists; the caller's wallet signature authorizes launches and claims.",
   services: [
     { name: "trading", domains: ["stonkfun", "launchpad"] },
     { name: "fees", domains: ["stonkfun"] },
@@ -181,7 +181,7 @@ export const STONK_AGENT: AgentTemplatePreset = {
   ],
   sources: [
     "Official Stonkfun Developer API documentation (owner-supplied, authoritative — supersedes the v0.2 launch-disabled claim)",
-    "agent-kit stonk package (@themusebook/agent-kit-stonk): the client this preset references",
+    "agent-kit stonk package (@musebook/stonk): the client this preset references",
     "local skill local-stonkfun + themusebook/solana-rwa-agents agents/stonkfun.ts (earlier API surface notes; where they conflict with the official API doc, the doc wins — see docs/migration-v0.3.0.md)",
   ],
 };
@@ -239,7 +239,7 @@ export const PERPS_AGENT: AgentTemplatePreset = {
     notes: [
       "No token launch is implied by this preset: a perps agent's finance is margin + risk, not a launch route. (If the agent also wants a token, the Genesis route in finance applies independently.)",
       "Topology (file-verified): Phoenix = the venue — repo clawd-agents-perps reads it through a real @ellipsis-labs/rise adapter (13 typed methods, perp-api.phoenix.trade); repo clawd-perps-agent wraps a vendored STUB of the same surface (empty-success results) with a Vulcan-binary fallback. Vulcan is Phoenix's CLI/MCP plan/catalog layer: the runtime builds previews (paper → vulcan paper-buy/sell; live → rise/order.place with a blocked flag) and NEVER signs or sends.",
-      "Imperial = the router + submission path (@themusebook/agent-kit-perps descriptors): MobileCreateOrderRequest to POST /mobile/orders — action Increase|Decrease, side long|short, numeric OrderType (Market/Limit/StopLimit/LandMine/Ratchet/DCA/FibRatchet/…), sizeUsd, triggerPrice at 1e9 oracle scale; TP/SL ride WITH the entry via placeBatch closeOrders (TP = Decrease Limit, SL = Decrease StopLimit). Dry-run unless IMPERIAL_LIVE=true + JWT.",
+      "Imperial = the router + submission path (@musebook/perps descriptors): MobileCreateOrderRequest to POST /mobile/orders — action Increase|Decrease, side long|short, numeric OrderType (Market/Limit/StopLimit/LandMine/Ratchet/DCA/FibRatchet/…), sizeUsd, triggerPrice at 1e9 oracle scale; TP/SL ride WITH the entry via placeBatch closeOrders (TP = Decrease Limit, SL = Decrease StopLimit). Dry-run unless IMPERIAL_LIVE=true + JWT.",
       "Risk (perps.buildPreflightReport, the repos' own model): a verdict REPORT {ok, blocking, warnings} — defaults SOL/ETH/BTC allowlist, $250 max notional, 3x max leverage, 40bps max spread, wallet required, live execution blocked unless mode is live (LIVE_TRADING + OPERATOR_CONFIRMED + PERPS_SIM_ONLY off; sim-only defaults ON). The Imperial layer is stricter ($100 max size, 50bps slippage) and CLAMPS oversize instead of blocking — both behaviors are surfaced, not merged.",
       "Absent from both repos (do not invent): grid quoting, TWAP slicing, Touch binaries, and any aggregate-exposure/margin CHECK (margin fields are display-only). TWAMM is an external spot-AMM crank bridge, not a perps order type.",
     ],
@@ -254,7 +254,7 @@ export const PERPS_AGENT: AgentTemplatePreset = {
   sources: [
     "Solizardking/clawd-agents-perps (real @ellipsis-labs/rise adapter phoenixRise.ts, config.ts preflight, imperialAgent/imperialBot order + batch shapes, twammAutomation/onchainMarketMaker external bridges, server/tests)",
     "Solizardking/clawd-perps-agent (same package lineage; vendored @openclawdsolana/clawd-perps stub read plane, financialDomain/financialClawd rails — majority non-perps new code)",
-    "agent-kit perps package (@themusebook/agent-kit-perps): venue descriptors, preflight report, Imperial order/batch descriptors grounded in those repos",
+    "agent-kit perps package (@musebook/perps): venue descriptors, preflight report, Imperial order/batch descriptors grounded in those repos",
     "NOT in the repos: grid, TWAP, Touch, seat/exposure checks — see docs/perps.md for the full overlap/difference notes",
   ],
 };

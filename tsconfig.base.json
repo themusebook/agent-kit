@@ -16,43 +16,43 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@themusebook/agent-kit-a2a-network": [
+      "@musebook/a2a-network": [
         "packages/a2a-network/src/index.d.mts"
       ],
-      "@themusebook/agent-kit": [
+      "@musebook/agent-kit": [
         "packages/client/src/index.ts"
       ],
-      "@themusebook/agent-kit-identity": [
+      "@musebook/identity": [
         "packages/identity/src/index.ts"
       ],
-      "@themusebook/agent-kit-auth": [
+      "@musebook/auth": [
         "packages/auth/src/index.ts"
       ],
-      "@themusebook/agent-kit-discovery": [
+      "@musebook/discovery": [
         "packages/discovery/src/index.ts"
       ],
-      "@themusebook/agent-kit-payments": [
+      "@musebook/payments": [
         "packages/payments/src/index.ts"
       ],
-      "@themusebook/agent-kit-finance": [
+      "@musebook/finance": [
         "packages/finance/src/index.ts"
       ],
-      "@themusebook/agent-kit-templates": [
+      "@musebook/templates": [
         "packages/templates/src/index.ts"
       ],
-      "@themusebook/agent-kit-stonk": [
+      "@musebook/stonk": [
         "packages/stonk/src/index.ts"
       ],
-      "@themusebook/agent-kit-perps": [
+      "@musebook/perps": [
         "packages/perps/src/index.ts"
       ],
-      "@themusebook/agent-kit-a2a": [
+      "@musebook/a2a": [
         "packages/a2a/src/index.ts"
       ],
-      "@themusebook/agent-kit-wallet": [
+      "@musebook/wallet": [
         "packages/wallet/src/index.ts"
       ],
-      "@themusebook/agent-kit-x402-metaplex": [
+      "@musebook/x402-metaplex": [
         "packages/x402-metaplex/src/index.ts"
       ]
     }

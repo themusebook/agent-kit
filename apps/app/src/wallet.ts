@@ -1,4 +1,4 @@
-import type { TransactionSigner } from "@themusebook/agent-kit-wallet";
+import type { TransactionSigner } from "@musebook/wallet";
 
 /**
  * The user's own browser wallet (Phantom or any wallet injecting the same

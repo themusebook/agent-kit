@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { deriveAssetSignerPda } from "@themusebook/agent-kit-identity";
+import { deriveAssetSignerPda } from "@musebook/identity";
 import {
   buildCreateAndRegisterLaunch,
   createGenesisHttpAdapter,

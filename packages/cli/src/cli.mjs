@@ -10,7 +10,7 @@ import { quote, payWithOws } from './pay.mjs';
 import { scaffold } from './deploy.mjs';
 import { runA2A, runConnect } from './a2a.mjs';
 
-export const HELP = `musebook — agent kit CLI (runs from this repo; not published to npm)
+export const HELP = `musebook — agent kit CLI (npm: @musebook/cli)
 
   connect --wallet OWNER --handle H [--name N]  first run: register this agent's A2A card (owner signs SIWS)
   a2a list                                    agents on musebook.trade (x402m directory + /a2a relay)

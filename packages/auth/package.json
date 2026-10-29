@@ -1,20 +1,44 @@
 {
-  "name": "@themusebook/agent-kit-auth",
-  "version": "0.3.0",
-  "description": "Musebook Agent Kit \u2014 SIWS sessions, directory register + API key, Agent Auth.",
+  "name": "@musebook/auth",
+  "version": "0.1.1",
+  "description": "Musebook Agent Kit — SIWS sessions, directory register + API key, Agent Auth.",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "dependencies": {
-    "@themusebook/agent-kit-wallet": "workspace:*",
+    "@musebook/wallet": "workspace:*",
     "@solana/web3.js": "^1.98.0",
-    "@themusebook/agent-kit-identity": "workspace:*"
+    "@musebook/identity": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/auth"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/auth#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

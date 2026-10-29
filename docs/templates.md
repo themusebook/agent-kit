@@ -1,4 +1,4 @@
-# Venue templates (`@themusebook/agent-kit-templates`)
+# Venue templates (`@musebook/templates`)
 
 Seven first-class presets. Each pairs **registration-document defaults**
 (services, `x402Support`, supported trust) with **finance defaults**
@@ -17,7 +17,7 @@ per service name).
 | `x402-agent` | none (revenue = payments) | ✅ | sells pay-per-call services, settles USDC to the Asset Signer PDA |
 | `raydium-agent` | Genesis bonding curve → Raydium CPMM graduation | — | launches via Genesis, quotes/builds Raydium swaps for the user to sign |
 | `pump-agent` | pump.fun bonding curve | — | finance pump flow descriptors (create-coin/swap/fees/invoices); user co-signs everything |
-| `stonk-agent` | stonk.fun — API path or BYO LaunchLab, chosen from `/stats` at runtime | — | backed by the real `@themusebook/agent-kit-stonk` client (see stonk.md) |
+| `stonk-agent` | stonk.fun — API path or BYO LaunchLab, chosen from `/stats` at runtime | — | backed by the real `@musebook/stonk` client (see stonk.md) |
 | `rwa-agent` | Genesis bonding curve | — | agent paired 1:1 with a tokenized real-world asset; trades from the Asset Signer PDA |
 | `perps-agent` | none (margin + risk, not a launch) | — | Phoenix venue via Rise/Vulcan + Imperial router orders; preflight-report risk model (see perps.md) |
 | `decision-agent` | none | — | JEV typed judgment over a dynamic, reachability-built action space; fail-closed, paper default (see perps.md) |
@@ -42,7 +42,7 @@ per service name).
   API prepare-launch flow was disabled (a 2026-09-18 probe) is
   superseded by the official Stonkfun Developer API documentation.
   The preset is now backed by the real client
-  (`@themusebook/agent-kit-stonk`, docs/stonk.md): both launch paths
+  (`@musebook/stonk`, docs/stonk.md): both launch paths
   exist, `/stats` decides which is live at runtime, BYO LaunchLab
   launches are planned + adoption-validated, and Fee Key NFT claims
   carry typed 403/409 semantics. See docs/migration-v0.3.0.md.
@@ -54,7 +54,7 @@ per service name).
   dry-run-default) submission path. The preflight report, Imperial
   order/batch descriptors and the absent-features list (no grid,
   TWAP, Touch, or exposure checks in either repo) live in
-  `@themusebook/agent-kit-perps` (docs/perps.md).
+  `@musebook/perps` (docs/perps.md).
 - **decision-agent** — the JEV pattern from jev-trader-solana:
   typed judgment over a dynamic action space built from reachable
   venues, fail-closed to BLOCKED, paper by default, memory recall

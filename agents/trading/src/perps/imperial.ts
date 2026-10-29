@@ -4,13 +4,14 @@ import { checkIntent, type OrderResult, type PerpOrderIntent, type PerpsVenue } 
 
 export const IMPERIAL_BASE = "https://api.imperial.space/api/v1";
 
-/** Underwriter ids used by POST /mobile/orders (Phoenix is the default route). */
-export const UNDERWRITER = { flash: 0, jupiter: 1, phoenix: 2, gmtrade: 3 } as const;
+/** Underwriter codes, as in clawd-agents-perps src/imperialAgent.ts (Jupiter 0, Flash 1, Phoenix 2 = default, GMTrade 3). */
+export const UNDERWRITER = { jupiter: 0, flash: 1, phoenix: 2, gmtrade: 3 } as const;
 
 /**
- * Imperial router. Reads are public REST. Orders on Imperial go through
- * POST /mobile/orders under a delegated JWT session, and Imperial's server
- * signs and lands them: there is no unsigned order tx for the user's wallet.
+ * Imperial is a multi-underwriter router (Jupiter / Flash / Phoenix default / GMTrade).
+ * Reads are public REST. Its only order submit is POST /mobile/orders under a JWT session
+ * (clawd-agents-perps keeps it dry-run unless IMPERIAL_LIVE=true plus a token), so there is
+ * no unsigned order tx for the user.s wallet.
  * The kit therefore never places Imperial orders; it returns a preview.
  * Deposits and withdrawals use POST /deposit/build-tx, which returns a tx the
  * user's wallet still signs.

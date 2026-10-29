@@ -1,4 +1,4 @@
-import type { TransactionSigner } from "@themusebook/agent-kit-wallet";
+import type { TransactionSigner } from "@musebook/wallet";
 import { PublicKey } from "@solana/web3.js";
 import {
   deriveAgentIdentityPda,
@@ -23,7 +23,7 @@ import {
 
 /**
  * Registration = two steps, one contract (ARCHITECTURE §5). The directory
- * step lives in @themusebook/agent-kit-auth (`registerDirectory`); this
+ * step lives in @musebook/auth (`registerDirectory`); this
  * module is step 2: the identity mint.
  *
  * The mint goes through the Metaplex HOSTED API

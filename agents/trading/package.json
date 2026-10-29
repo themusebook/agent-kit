@@ -1,11 +1,12 @@
 {
   "name": "@musebook/trading-agents",
   "license": "MIT",
-  "private": true,
   "type": "module",
   "scripts": {
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
   },
   "dependencies": {
     "@ellipsis-labs/rise": "0.6.4",
@@ -20,6 +21,52 @@
   "devDependencies": {
     "@types/bn.js": "^5.2.0",
     "@types/bun": "^1.4.4",
+    "@types/node": "22",
     "typescript": "5"
+  },
+  "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "agents/trading"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/agents/trading#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./decision": {
+      "types": "./dist/decision/index.d.ts",
+      "default": "./dist/decision/index.js"
+    },
+    "./perps": {
+      "types": "./dist/perps/index.d.ts",
+      "default": "./dist/perps/index.js"
+    },
+    "./pumpfun-founder": {
+      "types": "./dist/pumpfun-founder/index.d.ts",
+      "default": "./dist/pumpfun-founder/index.js"
+    },
+    "./stonk": {
+      "types": "./dist/stonk/index.d.ts",
+      "default": "./dist/stonk/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
