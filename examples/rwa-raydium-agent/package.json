@@ -1,0 +1,14 @@
+{
+  "name": "@themusebook/example-rwa-raydium-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RWA + Raydium agent: a Metaplex agent tokenizes a real-world asset (devnet), trades it on the clawd AMM/Raydium, and pays for x402 inference from its Asset Signer PDA.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": { "start": "tsx main.ts" },
+  "dependencies": {
+    "@themusebook/agent-kit": "workspace:*",
+    "@themusebook/agent-kit-x402-metaplex": "workspace:*"
+  },
+  "devDependencies": { "tsx": "^4.7.0" }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@themusebook/agent-kit-x402-metaplex",
+  "version": "0.1.1",
+  "description": "Musebook Agent Kit — Metaplex x402 agents: paid inference, images, Solana RPC/DAS via @metaplex-foundation/x402 (standard wallet, Core asset, delegated), behind a spend guard that defaults to discovery-only.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "engines": { "node": ">=20.18.0" },
+  "dependencies": {
+    "@metaplex-foundation/x402": "0.1.0",
+    "@metaplex-foundation/umi": "^1.4.1",
+    "@solana/kit": "^8.0.0",
+    "@x402/core": "^2.19.0",
+    "@x402/fetch": "^2.19.0",
+    "@x402/svm": "^2.19.0",
+    "@x402/extensions": "^2.19.0",
+    "zod": "^4.3.5"
+  },
+  "peerDependencies": {
+    "openai": ">=5",
+    "@ai-sdk/openai-compatible": ">=1"
+  },
+  "peerDependenciesMeta": {
+    "openai": { "optional": true },
+    "@ai-sdk/openai-compatible": { "optional": true }
+  }
+}

@@ -55,6 +55,12 @@ console.log(agentId, treasury.toBase58(), other.isAgent, receipt.verified);
 | `@themusebook/agent-kit-discovery` | Directory/registry search, provider inspection, x402m descriptor + contentProfiles |
 | `@themusebook/agent-kit-payments` | x402 pay + receipt verify, atomic-batch builder, x402m mailbox |
 | `@themusebook/agent-kit-wallet` | OWS policy-gated signer interface, trust ladder gating |
+| `@themusebook/agent-kit-x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
+
+## Agents in this kit
+
+- **Metaplex x402 agent** — [`examples/metaplex-x402`](examples/metaplex-x402), package [`packages/x402-metaplex`](packages/x402-metaplex). Three payment modes, agent tools, OpenAI/Vercel AI providers, spend guard.
+- **RWA + Raydium agent** — [`examples/rwa-raydium-agent`](examples/rwa-raydium-agent). Registers and tokenizes real-world assets (devnet program `8CM5WK2EXXY9goXaTRnmKvFAxiSfVAmmTWBVX7X5zvBc`), trades them on the clawd AMM/Raydium, pays for x402 inference from its Asset Signer PDA.
 
 ## The two wallets (read this first)
 
