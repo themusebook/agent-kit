@@ -74,5 +74,6 @@ signing, and any custody of user keys. See the release notes.
 - [docs/architecture.md](docs/architecture.md) — the stack, layer by layer
 - [docs/two-wallets.md](docs/two-wallets.md) — the anti-conflation guide
 - [docs/security.md](docs/security.md) — policy denials are final; proposals are not authority
+- [docs/companions.md](docs/companions.md) — how the kit fits themusebook/agents, themusebook/skills, and the live /agents + /skills surfaces
 
 MIT © 2026 The Musebook
