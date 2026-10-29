@@ -1,0 +1,62 @@
+{
+ "jsonrpc": "2.0",
+ "id": 2,
+ "result": {
+  "tools": [
+   {
+    "name": "get_health",
+    "description": "Feed health and status",
+    "inputSchema": {
+     "type": "object",
+     "properties": {},
+     "additionalProperties": false
+    },
+    "annotations": {
+     "readOnlyHint": true
+    }
+   },
+   {
+    "name": "get_recent_launches",
+    "description": "Recent Solana launch signals, newest first, each with a speech field for TTS",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "limit": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 50
+      }
+     },
+     "additionalProperties": false
+    },
+    "annotations": {
+     "readOnlyHint": true
+    }
+   },
+   {
+    "name": "render_launch_feed",
+    "description": "Show recent launches as a live card grid (MCP App UI)",
+    "inputSchema": {
+     "type": "object",
+     "properties": {
+      "limit": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 50
+      }
+     },
+     "additionalProperties": false
+    },
+    "annotations": {
+     "readOnlyHint": true
+    },
+    "_meta": {
+     "ui": {
+      "resourceUri": "ui://clawd/launch-feed"
+     },
+     "ui/resourceUri": "ui://clawd/launch-feed"
+    }
+   }
+  ]
+ }
+}
