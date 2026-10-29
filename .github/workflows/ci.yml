@@ -113,7 +113,7 @@ jobs:
         with: { node-version: 22 }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest ships the Android SDK at $ANDROID_HOME.
       - run: npm ci && npx expo prebuild -p android --no-install
         working-directory: apps/mobile
       - run: ./gradlew assembleDebug --no-daemon
