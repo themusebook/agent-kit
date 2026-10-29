@@ -9,6 +9,7 @@ import { readIdentity, prepareMint, simulate } from './identity.mjs';
 import { quote, payWithOws } from './pay.mjs';
 import { scaffold } from './deploy.mjs';
 import { runA2A, runConnect } from './a2a.mjs';
+import { runAgent } from './agent.mjs';
 
 export const HELP = `musebook — agent kit CLI (npm: @musebook/cli)
 
@@ -24,6 +25,8 @@ export const HELP = `musebook — agent kit CLI (npm: @musebook/cli)
   x402m send --to H --kind K --content C [--content-profile P] [--request-id ID]
   x402m inbox [--limit N] | x402m ack <id>
   identity <asset> [--network solana-devnet|solana-mainnet]
+  agent read|wallet|search <asset>           Metaplex agent identity, Asset Signer wallet, DAS search
+  agent executive register|delegate|delegation|revoke|cleanup-approval   unsigned txs only (run \`musebook agent\`)
   mint --wallet W --name N --uri U [--network ...] [--rpc URL] [--simulate]   unsigned tx only
   deploy <slug> [--dir D] [--with-responder]  scaffold computer + bot + adk (local Docker)
   pay <url> [--yes --wallet OWS_WALLET]       show 402 terms; pay only with --yes via OWS
@@ -78,6 +81,12 @@ export async function main(argv, env = process.env) {
       throw new Error('x402m connect|send|inbox|ack');
     }
     case 'identity': return out(await readIdentity(rest[0], { network: f.network ?? 'solana-devnet' }));
+    case 'agent': {
+      const r = await runAgent(rest, f);
+      out(r);
+      if (r?.signed === false) console.log(`UNSIGNED. Review, then sign in your own wallet (${r.signer}): ows sign send-tx --chain solana --wallet <name> --tx <hex above>`);
+      return;
+    }
     case 'mint': {
       const m = await prepareMint({ ...f, network: f.network ?? 'solana-devnet' });
       await writeFile('agent-mint.tx.b64', m.base64 + '\n');
