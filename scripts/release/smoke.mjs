@@ -17,8 +17,9 @@ writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "smoke", private
 execFileSync("npm", ["install", "--no-audit", "--no-fund", "--ignore-scripts", ...tgz], { cwd: dir, stdio: "inherit" });
 for (const p of PUBLISHABLE) {
   const { name } = JSON.parse(readFileSync(`${p.dir}/package.json`, "utf8"));
-  if (p.bin) { execFileSync(join(dir, "node_modules/.bin/musebook"), ["--help"], { cwd: dir, stdio: "ignore" }); console.log(`ok ${name} (bin)`); continue; }
-  if (name === "@musebook/x402-metaplex") { console.log(`skip ${name}: upstream @metaplex-foundation/x402 dist uses extensionless imports and fails under Node ESM (bundlers work)`); continue; }
-  const n = execFileSync("node", ["--input-type=module", "-e", `const m = await import(${JSON.stringify(name)}); console.log(Object.keys(m).length)`], { cwd: dir, encoding: "utf8" }).trim();
-  console.log(`ok ${name}: ${n} exports`);
+  if (p.bin) { const help = execFileSync(join(dir, "node_modules/.bin/musebook"), ["--help"], { cwd: dir, encoding: "utf8" }); if (/not published|runs from this repo/i.test(help)) throw new Error("musebook --help still says unpublished"); console.log(`ok ${name} (bin)`); continue; }
+  for (const spec of [name, ...(p.subpaths ?? []).map((s) => `${name}/${s}`)]) {
+    const n = execFileSync("node", ["--input-type=module", "-e", `const m = await import(${JSON.stringify(spec)}); console.log(Object.keys(m).length)`], { cwd: dir, encoding: "utf8" }).trim();
+    console.log(`ok ${spec}: ${n} exports`);
+  }
 }

@@ -17,7 +17,9 @@ for (const pkg of PUBLISHABLE) {
   const usesPnpm = pkg.dir.startsWith("packages/") && !pkg.bin;
   if (!pkg.bin && !pkg.raw) run(pkg.dir === "agents/trading" ? "node_modules/.bin/tsc" : "../../node_modules/.bin/tsc", ["-p", "tsconfig.build.json"], pkg.dir);
   if (!pkg.bin && !pkg.raw) run("node", ["../../scripts/release/fix-esm.mjs"], pkg.dir);
+  if (pkg.vendor) run("node", [`../../scripts/release/${pkg.vendor}`], pkg.dir);
   if (!publish) { run("npm", ["pack", "--dry-run"], pkg.dir); continue; }
+  if (pkg.publish === false) { console.log(`skip ${name}: not released yet (smoke-tested only)`); continue; }
   if (published(name, version)) { console.log(`skip ${name}@${version}: already on npm`); continue; }
   // pnpm rewrites workspace:* ranges to real versions at publish time; npm does not.
   if (usesPnpm) run("pnpm", ["publish", "--access", "public", "--provenance", "--no-git-checks"], pkg.dir);

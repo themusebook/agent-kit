@@ -174,7 +174,7 @@ Alongside the SDK packages, this repo carries an experimental starter kit: a `mu
 
 | Path | What |
 |------|------|
-| `packages/cli` | `musebook` CLI. Imports the x402m client from [x402-messaging](https://github.com/Solizardking/x402-messaging), Metaplex identity from `@metaplex-foundation/mpl-agent-registry` and `mpl-core`, and Solana constants from `@x402/svm` |
+| `packages/cli` | `musebook` CLI. Ships a vendored copy of the x402m client from [x402-messaging](https://github.com/Solizardking/x402-messaging) (not on npm), Metaplex identity from `@metaplex-foundation/mpl-agent-registry` and `mpl-core`, and Solana constants from `@x402/svm` |
 | `agents/computer` | Browser computer for one agent (Playwright, egress policy, sensitive-field masking) |
 | `agents/bot` | AG-UI bot that drives the computer through a model provider |
 | `agents/adk` | Google ADK bot (Python, AG-UI) |

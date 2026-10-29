@@ -9,7 +9,7 @@ const KIT_ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 export function compose({ slug, kitRoot, withResponder }) {
   const svc = (name, port, env) => `  ${name}:\n    build: { context: ${kitRoot}/agents, dockerfile: ${name}/Dockerfile }\n    image: musebook-${slug}-${name}:local\n    env_file: .env\n    environment: { AGENT_SLUG: ${slug}${env} }\n    ports: ["127.0.0.1:${port}:${port}"]\n`;
   return `name: musebook-${slug}\nservices:\n${svc('computer', 4100, '')}${svc('bot', 4200, '')}${svc('adk', 4208, '')}`
-    + (withResponder ? `  x402m-responder:\n    build: { context: ${kitRoot}/packages/cli/node_modules/x402-messaging, dockerfile: x402m-bot/hosted/Dockerfile }\n    env_file: .env\n    volumes: ["./x402m:/data:ro"]\n` : '');
+    + (withResponder ? `  x402m-responder:\n    build: { context: "https://github.com/Solizardking/x402-messaging.git#ca122da", dockerfile: x402m-bot/hosted/Dockerfile }\n    env_file: .env\n    volumes: ["./x402m:/data:ro"]\n` : '');
 }
 export async function scaffold({ slug, dir, withResponder = false, fetchImpl }) {
   if (!SLUG.test(slug ?? '')) throw new Error('slug must be 2-32 lowercase letters, digits or hyphens');

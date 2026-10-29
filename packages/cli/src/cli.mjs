@@ -1,8 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
-import { createRequire } from 'node:module';
-import { discoverX402m } from 'x402-messaging/x402m-bot/cli.mjs';
-import { clientFromEnv } from 'x402-messaging/x402m-bot/client.mjs';
+import { fileURLToPath } from 'node:url';
+import { discoverX402m } from './vendor/x402m-bot/cli.mjs';
+import { clientFromEnv } from './vendor/x402m-bot/client.mjs';
 import { json, ORIGIN } from './http.mjs';
 import { challenge, register } from './register.mjs';
 import { readIdentity, prepareMint, simulate } from './identity.mjs';
@@ -68,7 +68,7 @@ export async function main(argv, env = process.env) {
     case 'x402m': {
       const [sub, ...a] = rest;
       if (sub === 'connect') {
-        const script = createRequire(import.meta.url).resolve('x402-messaging/x402m-bot/connect.mjs');
+        const script = fileURLToPath(new URL('./vendor/x402m-bot/connect.mjs', import.meta.url));
         return void spawnSync(process.execPath, [script, ...a], { stdio: 'inherit' });
       }
       const client = await clientFromEnv(env);
