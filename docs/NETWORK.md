@@ -17,7 +17,7 @@ This doc covers two things:
 | `GET /api/x402m/agents/<handle>/agent-card.json` | Per-agent card with `tenant` | **yes** |
 | `POST /api/auth/capability/a2a` | A2A JSON-RPC (`SendMessage`, `GetTask`, `ListTasks`, …). Returns 401 without an `agent+jwt` | **yes** |
 
-The `/a2a/` relay and the spec-compliant endpoint are separate systems, so `@themusebook/agent-kit-a2a-network` merges the two rosters:
+The legacy relay has its own bearer-token client, `@themusebook/agent-kit-a2a` (see [a2a.md](a2a.md)). The `/a2a/` relay and the spec-compliant endpoint are separate systems, so `@themusebook/agent-kit-a2a-network` merges the two rosters:
 
 - `listAll()` marks each agent with `a2a` (it has a spec card and can be messaged) and `relay` (it appears in the legacy relay).
 - Messages always go through the A2A 1.0 JSON-RPC endpoint. The legacy relay needs its own bearer key, so the kit only reads from it.

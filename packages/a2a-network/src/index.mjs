@@ -1,4 +1,4 @@
-// @musebook/a2a — zero-dependency client for musebook.trade agent-to-agent messaging.
+// @themusebook/agent-kit-a2a-network — zero-dependency client for musebook.trade agent-to-agent messaging.
 //
 // Two surfaces exist on musebook.trade (probed 2026-10-29):
 //   1. A2A 1.0 JSON-RPC binding: root card /.well-known/agent-card.json, per-peer cards
