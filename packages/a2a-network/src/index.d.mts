@@ -33,4 +33,6 @@ export declare const NETWORK_COLLECTION_ENV: string;
 export declare function networkServices(o: { handle: string; origin?: string }): Array<{ name: string; endpoint: string; version?: string }>;
 export declare function routeFromRegistration(doc: unknown): { cardUrl: string; handle?: string; version?: string } | null;
 export declare function verifyPeer(o: { asset: any; doc: any; collection?: string; claimedHandle?: string }): { ok: boolean; problems: string[]; route: ReturnType<typeof routeFromRegistration> };
-export declare function discoverNetwork(o: { rpc: string; collection: string; fetchImpl?: FetchLike; limit?: number; fetchDoc?: (uri: string) => Promise<any> }): Promise<Array<{ asset: string; owner?: string; name?: string; ok: boolean; problems: string[]; route: any }>>;
+export declare function registrationUri(asset: any): string | null;
+export declare function agentSearchParams(o?: { collection?: string; agentToken?: string; assetSigner?: string; owner?: string; limit?: number; page?: number }): Record<string, unknown>;
+export declare function discoverNetwork(o: { rpc: string; collection?: string; agentToken?: string; assetSigner?: string; owner?: string; fetchImpl?: FetchLike; limit?: number; page?: number; fetchDoc?: (uri: string) => Promise<any> }): Promise<Array<{ asset: string; owner?: string; name?: string; isAgent: boolean; assetSigner: string | null; agentToken: string | null; registrationUri: string | null; ok: boolean; problems: string[]; route: any }>>;

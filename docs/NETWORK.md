@@ -57,7 +57,7 @@ We use the Reason Network vocabulary of team, machine, session, verified peer an
 | address / routing (`alice/api-cursor`) | registration doc `services[]`: `{name:'A2A', endpoint: <card url>}`, `{name:'x402m', ...}`, which resolves to the handle and then the card `tenant` | `networkServices`, `routeFromRegistration` |
 | verified peer | asset in the collection, not burned, with its A2A service matching the claimed handle. Message authenticity comes from `agent+jwt` (Ed25519, body-bound `ath`) | `verifyPeer` |
 | session | A2A `contextId` / tasks (`ListTasks`, `GetTask`) | JSON-RPC |
-| discovery | DAS `getAssetsByGroup(collection)` on any DAS RPC (Helius, for example) | `discoverNetwork` |
+| discovery | DAS `searchAssets { isAgent: true, interface: "MplCoreAsset", grouping: ["collection", C] }` on a DAS RPC with Metaplex agent-registry indexing | `discoverNetwork` |
 | liveness | off-chain (relay `last_seen`, x402m directory) | no per-heartbeat transactions |
 
 **The program identifier.** The network has no new program. It is identified by:

@@ -156,16 +156,25 @@ describe("network (Metaplex-first)", () => {
     expect(verifyPeer({ asset: { id: "A", grouping: [] }, doc, collection: COL }).problems).toContain("asset is not in the network collection");
     expect(verifyPeer({ asset, doc, collection: COL, claimedHandle: "other" }).ok).toBe(false);
   });
-  it("discoverNetwork queries DAS getAssetsByGroup and resolves routes", async () => {
+  it("discoverNetwork uses DAS searchAssets (isAgent, MplCoreAsset, camelCase) and routes via the AgentIdentity uri", async () => {
     const bodies: any[] = [];
+    const docs: string[] = [];
     const f = async (_u: string, init: any) => { bodies.push(JSON.parse(init.body)); return ok({ result: { items: [
-      { id: "A", ownership: { owner: "O" }, content: { json_uri: "https://x/a.json", metadata: { name: "a" } }, grouping: [{ group_key: "collection", group_value: COL }] },
-      { id: "B", content: {}, grouping: [{ group_key: "collection", group_value: COL }] },
+      // docs' getAsset example shape (snake_case), plus network grouping
+      { interface: "MplCoreAsset", id: "84jw9dw7hMRJXFvzJXrBzVQpmVWaGUtYT7R6QhNU9qt3", is_agent: true, asset_signer: "6ttUwc5VVmHeVKTddB6XM5vQgBMfw62DThuoiVEufVZq",
+        external_plugins: [{ type: "AgentIdentity", adapter_config: { uri: "https://example.com/agent-registration.json" } }],
+        ownership: { owner: "O" }, content: { json_uri: "https://x/core.json", metadata: { name: "a" } }, grouping: [{ group_key: "collection", group_value: COL }] },
+      { interface: "MplCoreAsset", id: "B", is_agent: true, content: {}, grouping: [{ group_key: "collection", group_value: COL }] },
     ] } }); };
-    const r = await discoverNetwork({ rpc: "https://rpc", collection: COL, fetchImpl: f, fetchDoc: async () => doc });
-    expect(bodies[0]).toMatchObject({ method: "getAssetsByGroup", params: { groupKey: "collection", groupValue: COL } });
-    expect(r[0]).toMatchObject({ asset: "A", owner: "O", ok: true });
+    const r = await discoverNetwork({ rpc: "https://rpc", collection: COL, fetchImpl: f, fetchDoc: async (u) => { docs.push(u); return doc; } });
+    expect(bodies[0]).toMatchObject({ method: "searchAssets", params: { interface: "MplCoreAsset", isAgent: true, grouping: ["collection", COL] } });
+    expect(Object.keys(bodies[0].params)).not.toContain("is_agent");
+    expect(docs).toEqual(["https://example.com/agent-registration.json"]);
+    expect(r[0]).toMatchObject({ asset: "84jw9dw7hMRJXFvzJXrBzVQpmVWaGUtYT7R6QhNU9qt3", owner: "O", ok: true, isAgent: true, assetSigner: "6ttUwc5VVmHeVKTddB6XM5vQgBMfw62DThuoiVEufVZq", agentToken: null });
     expect(r[1].ok).toBe(false);
+    await discoverNetwork({ rpc: "https://rpc", agentToken: "M", fetchImpl: f, fetchDoc: async () => doc });
+    expect(bodies[1].params).toMatchObject({ agentToken: "M", isAgent: true });
+    expect(bodies[1].params.grouping).toBeUndefined();
     await expect(discoverNetwork({ rpc: "", collection: COL })).rejects.toThrow(/MUSEBOOK_NETWORK_COLLECTION/);
   });
 });
