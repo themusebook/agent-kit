@@ -50,6 +50,21 @@ import {
   type TrustLevel,
 } from "@themusebook/agent-kit-wallet";
 import {
+  buildCreateAndRegisterLaunch,
+  buildSetAgentTokenV1,
+  type CreateAndRegisterLaunchInput,
+  type CreateAndRegisterLaunchPayload,
+  type SetAgentTokenV1Descriptor,
+  type SetAgentTokenV1Input,
+} from "@themusebook/agent-kit-finance";
+import {
+  AGENT_TEMPLATES,
+  buildTemplateRegistration,
+  getAgentTemplate,
+  type AgentTemplateId,
+  type AgentTemplatePreset,
+} from "@themusebook/agent-kit-templates";
+import {
   createContext,
   type AgentKitOptions,
   type KitContext,
@@ -104,6 +119,17 @@ export interface AgentKit {
     payChallenge(challenge: PaymentChallenge, signPayment: SignPayment): Promise<PaymentReceipt>;
     verifyReceipt(receipt: PaymentReceipt): Promise<boolean>;
     mailbox(getAgentToken: () => Promise<string>, endpoint?: string): Promise<MailboxClient>;
+  };
+  finance: {
+    /** Build a Genesis createAndRegisterLaunch payload (pure; submission is the caller's adapter). */
+    buildLaunch(input: CreateAndRegisterLaunchInput): CreateAndRegisterLaunchPayload;
+    /** Build the PERMANENT setAgentTokenV1 descriptor — refuses without acknowledgePermanent: true. */
+    buildSetAgentToken(input: SetAgentTokenV1Input): SetAgentTokenV1Descriptor;
+  };
+  templates: {
+    list(): readonly AgentTemplatePreset[];
+    get(id: AgentTemplateId): AgentTemplatePreset;
+    registration: typeof buildTemplateRegistration;
   };
   connection(): Connection;
 }
@@ -218,6 +244,21 @@ export function createAgentKit(
         const ep = endpoint ?? (await getMessagingDescriptor(context.hub)).endpoint;
         return new MailboxClient({ endpoint: ep, getAgentToken });
       },
+    },
+    finance: {
+      buildLaunch: (input) => buildCreateAndRegisterLaunch(input),
+      buildSetAgentToken: (input) => {
+        // A permanent identity binding sits behind the same trust gate as
+        // identity registration; the builder additionally refuses without
+        // acknowledgePermanent: true.
+        guard("register-identity");
+        return buildSetAgentTokenV1(input);
+      },
+    },
+    templates: {
+      list: () => AGENT_TEMPLATES,
+      get: (id) => getAgentTemplate(id),
+      registration: buildTemplateRegistration,
     },
   };
 }

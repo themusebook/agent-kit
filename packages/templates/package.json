@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@themusebook/agent-kit-identity": "workspace:*"
+  },
+  "description": "Musebook Agent Kit \u2014 venue agent templates: first-class registration + finance presets for x402, Raydium, pump.fun, stonk.fun and RWA agents.",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "@themusebook/agent-kit-templates",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "version": "0.2.0"
+}
