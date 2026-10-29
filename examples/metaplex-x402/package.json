@@ -1,0 +1,11 @@
+{
+  "name": "@themusebook/example-metaplex-x402",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Metaplex x402 agent: discovery by default; standard / core-asset / delegated payers behind the spend guard.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": { "start": "tsx main.ts" },
+  "dependencies": { "@themusebook/agent-kit-x402-metaplex": "workspace:*" },
+  "devDependencies": { "tsx": "^4.7.0" }
+}
