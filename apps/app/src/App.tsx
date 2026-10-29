@@ -108,6 +108,7 @@ function MintView({ network }: { network: "devnet" | "mainnet-beta" }) {
         .then((r) => setMsg(`Signed in your wallet: ${r.signature}`), (e: Error) => setMsg(e.message))}>
         {provider ? "Sign mint in wallet" : "No wallet found"}
       </button>
+      {!provider && <button onClick={() => window.open(location.href, "_blank", "noopener")}>Open in browser to sign</button>}
       {msg && <p>{msg}</p>}
       <p className="note">Directory registration (SIWS) and payments: use <code>musebook register</code> / <code>musebook pay</code> from packages/cli for now.</p>
     </>

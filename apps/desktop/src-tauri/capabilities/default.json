@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Local launcher page only. Remote dashboards get no IPC.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

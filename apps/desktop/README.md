@@ -1,10 +1,18 @@
-# desktop (scaffold)
+# desktop
 
-Tauri desktop shell around apps/app.
+Tauri 2 shell for the dashboard in [`../app`](../app), as SolanaBot's desktop used Tauri.
 
-**Status:** not ported yet. The SolanaBot source exists but is tied to the OpenBot product (auth, Slack/GitHub identity, provider OAuth, telemetry). Planned redesign:
+- First run shows a launcher asking for the dashboard URL (https, or http for localhost), e.g. the Helm chart's ingress. It is saved locally; open `index.html?change` to edit.
+- **No keys and no secrets.** The app bundles only the launcher. The server bearer and keyed RPC stay in the deployed dashboard's proxy. Remote pages get no Tauri IPC.
+- **Signing:** desktop webviews cannot load wallet extensions, so when no wallet is injected the dashboard shows *Open in browser to sign*. The shell routes that `window.open` to the system browser, where Phantom (or another wallet) signs. Non-http(s) pop-ups are dropped.
 
-- Reuse the app build in a Tauri window; keep code-signing material out of git (SolanaBot's `signing/` is not copied)
-- Local supervisor/computer control for running an agent on your own machine
+Dropped from SolanaBot desktop: container-engine install, stack bring-up and supervision, provider OAuth, vault, telemetry, tray, PTY, auto-update and signing configs.
 
-Rules that carry over: talk to `services/server` (default http://localhost:4000) and musebook.trade only; never hold wallet keys; register/mint/deploy hand an unsigned transaction to the user's own wallet (Phantom/Solflare/Mobile Wallet Adapter) to sign.
+```sh
+npm ci && npm test && npm run typecheck
+npm run tauri dev                 # needs Rust + platform webview libs
+npm run tauri build -- --bundles deb,appimage
+cd src-tauri && cargo test
+```
+
+On Linux the build needs `libwebkit2gtk-4.1-dev libssl-dev librsvg2-dev` (see CI). Installers are unsigned; code signing and notarization are not set up.

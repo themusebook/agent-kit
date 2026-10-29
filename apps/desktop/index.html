@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>musebook agents</title>
+    <style>
+      body { font: 15px system-ui, sans-serif; max-width: 520px; margin: 12vh auto; padding: 0 20px; }
+      input { width: 100%; padding: 8px; box-sizing: border-box; } button { margin-top: 10px; padding: 8px 14px; }
+      .err { color: #b00020; } .note { color: #555; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <h1>musebook agents</h1>
+    <form id="f">
+      <label for="url">Dashboard URL</label>
+      <input id="url" placeholder="https://agents.example.com" autocomplete="url" />
+      <button type="submit">Open</button>
+      <p id="err" class="err"></p>
+    </form>
+    <p class="note">This app opens your agent-kit dashboard (apps/app, e.g. the Helm chart's ingress). It holds no keys.
+      Wallet signing happens in your browser's wallet: "Open in browser to sign" hands the page to your default browser.</p>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
