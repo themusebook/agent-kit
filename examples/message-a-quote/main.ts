@@ -6,8 +6,8 @@
  * get a typed unsupported_profile refusal — never a silent mis-parse.
  * The quote itself is a PROPOSAL: it moves no funds.
  */
-import { createAgentKit } from "@themusebook/agent-kit";
-import { negotiateContentProfile } from "@themusebook/agent-kit-discovery";
+import { createAgentKit } from "@musebook/agent-kit";
+import { negotiateContentProfile } from "@musebook/discovery";
 import { devnetSigner } from "../quickstart/signer";
 
 const kit = createAgentKit({ network: "devnet", signer: devnetSigner() });

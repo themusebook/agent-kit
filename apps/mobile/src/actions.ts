@@ -1,6 +1,6 @@
 import { Connection } from "@solana/web3.js";
-import { buildRegistrationDocument, registerIdentity, resolveAgent, validateRegistrationDocument } from "@themusebook/agent-kit-identity";
-import { buildAtomicBatch, type BatchItem } from "@themusebook/agent-kit-payments";
+import { buildRegistrationDocument, registerIdentity, resolveAgent, validateRegistrationDocument } from "@musebook/identity";
+import { buildAtomicBatch, type BatchItem } from "@musebook/payments";
 import { chainFor, mwaSigner, signInWallet, type MwaSession, type Transact } from "./mwa";
 
 export const readIdentity = (rpc: string, asset: string) => resolveAgent({ rpc }, asset);

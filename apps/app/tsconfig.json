@@ -12,12 +12,12 @@
     "types": ["node", "vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@themusebook/agent-kit": ["../../packages/client/src/index.ts"],
-      "@themusebook/agent-kit-identity": ["../../packages/identity/src/index.ts"],
-      "@themusebook/agent-kit-discovery": ["../../packages/discovery/src/index.ts"],
-      "@themusebook/agent-kit-payments": ["../../packages/payments/src/index.ts"],
-      "@themusebook/agent-kit-wallet": ["../../packages/wallet/src/index.ts"],
-      "@themusebook/agent-kit-auth": ["../../packages/auth/src/index.ts"],
+      "@musebook/agent-kit": ["../../packages/client/src/index.ts"],
+      "@musebook/identity": ["../../packages/identity/src/index.ts"],
+      "@musebook/discovery": ["../../packages/discovery/src/index.ts"],
+      "@musebook/payments": ["../../packages/payments/src/index.ts"],
+      "@musebook/wallet": ["../../packages/wallet/src/index.ts"],
+      "@musebook/auth": ["../../packages/auth/src/index.ts"],
       "@solana/web3.js": ["./node_modules/@solana/web3.js"]
     }
   },

@@ -1,13 +1,21 @@
 {
-  "name": "@themusebook/agent-kit-x402-metaplex",
-  "version": "0.1.1",
+  "name": "@musebook/x402-metaplex",
+  "version": "0.1.0",
   "description": "Musebook Agent Kit — Metaplex x402 agents: paid inference, images, Solana RPC/DAS via @metaplex-foundation/x402 (standard wallet, Core asset, delegated), behind a spend guard that defaults to discovery-only.",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "engines": { "node": ">=20.18.0" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=20.18.0"
+  },
   "dependencies": {
     "@metaplex-foundation/x402": "0.1.0",
     "@metaplex-foundation/umi": "^1.4.1",
@@ -23,7 +31,34 @@
     "@ai-sdk/openai-compatible": ">=1"
   },
   "peerDependenciesMeta": {
-    "openai": { "optional": true },
-    "@ai-sdk/openai-compatible": { "optional": true }
+    "openai": {
+      "optional": true
+    },
+    "@ai-sdk/openai-compatible": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/x402-metaplex"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/x402-metaplex#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

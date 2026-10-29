@@ -14,8 +14,8 @@
  * script prints them and never sends. x402 stays discovery-only unless
  * X402_MODE=pay.
  */
-import { deriveAssetSignerPda } from "@themusebook/agent-kit";
-import { spendGuardFromEnv, createX402Tools } from "@themusebook/agent-kit-x402-metaplex";
+import { deriveAssetSignerPda } from "@musebook/agent-kit";
+import { spendGuardFromEnv, createX402Tools } from "@musebook/x402-metaplex";
 
 const API = (process.env.CLAWD_API ?? "http://localhost:8787").replace(/\/+$/, "");
 const WALLET = process.env.OWNER_WALLET ?? "<owner wallet (signs)>";

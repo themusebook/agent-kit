@@ -14,12 +14,12 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     resolve: {
       alias: {
-        "@themusebook/agent-kit-identity": pkg("identity"),
-        "@themusebook/agent-kit-discovery": pkg("discovery"),
-        "@themusebook/agent-kit-payments": pkg("payments"),
-        "@themusebook/agent-kit-wallet": pkg("wallet"),
-        "@themusebook/agent-kit-auth": pkg("auth"),
-        "@themusebook/agent-kit": pkg("client"),
+        "@musebook/identity": pkg("identity"),
+        "@musebook/discovery": pkg("discovery"),
+        "@musebook/payments": pkg("payments"),
+        "@musebook/wallet": pkg("wallet"),
+        "@musebook/auth": pkg("auth"),
+        "@musebook/agent-kit": pkg("client"),
         // SDK sources live outside this package; resolve their one runtime dep here.
         "@solana/web3.js": path.resolve(__dirname, "node_modules/@solana/web3.js"),
       },

@@ -1,4 +1,4 @@
-# Commerce — the three x402 payment modes (`@themusebook/agent-kit-payments`)
+# Commerce — the three x402 payment modes (`@musebook/payments`)
 
 The kit's original payments flow — the Musebook facilitator's x402 v1
 `exact` scheme (`pay()` / `payChallenge()` / `verifyReceipt()` in

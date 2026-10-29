@@ -1,4 +1,4 @@
-import type { AgentConfiguration } from "@themusebook/agent-kit-auth";
+import type { AgentConfiguration } from "@musebook/auth";
 
 /**
  * Agent Auth provider inspection — the same read registry.musebook.trade's

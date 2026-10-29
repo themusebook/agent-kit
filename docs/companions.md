@@ -53,7 +53,7 @@ standard YAML frontmatter (`name`, `description`, optional
 `metadata.openclaw.requires`, optional `allowed-tools`).
 
 `kit.discovery.skills()` / `skillsCatalog()` read that catalog, and
-`parseSkillFrontmatter()` (from `@themusebook/agent-kit-discovery`)
+`parseSkillFrontmatter()` (from `@musebook/discovery`)
 parses SKILL.md frontmatter into typed fields aligned with the repo's
 format. The kit does **not** install or execute skills — discovery and
 parsing only; installation stays with the skills tooling itself.

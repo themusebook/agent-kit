@@ -9,7 +9,7 @@
     "start": "tsx main.ts"
   },
   "dependencies": {
-    "@themusebook/agent-kit": "workspace:*",
+    "@musebook/agent-kit": "workspace:*",
     "@solana/web3.js": "^1.98.0",
     "tweetnacl": "^1.0.3"
   },

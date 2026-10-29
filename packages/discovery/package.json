@@ -1,18 +1,42 @@
 {
-  "name": "@themusebook/agent-kit-discovery",
-  "version": "0.3.0",
-  "description": "Musebook Agent Kit \u2014 directory/registry search, provider inspection, x402m discovery + contentProfiles.",
+  "name": "@musebook/discovery",
+  "version": "0.1.0",
+  "description": "Musebook Agent Kit — directory/registry search, provider inspection, x402m discovery + contentProfiles.",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "dependencies": {
-    "@themusebook/agent-kit-auth": "workspace:*"
+    "@musebook/auth": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/discovery"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/discovery#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

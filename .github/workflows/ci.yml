@@ -135,3 +135,15 @@ jobs:
         with:
           name: mobile-android-debug-apk
           path: apps/mobile/android/app/build/outputs/apk/debug/*.apk
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: pnpm install --no-frozen-lockfile
+      - run: cd agents/trading && bun install --frozen-lockfile
+      - run: cd packages/cli && npm ci
+      - run: node scripts/release/publish.mjs # dry run: build + npm pack --dry-run only

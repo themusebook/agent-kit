@@ -1,4 +1,4 @@
-import { normalizeSnapshot, parseContentProfile, type DirectorySnapshot } from "@themusebook/agent-kit-discovery";
+import { normalizeSnapshot, parseContentProfile, type DirectorySnapshot } from "@musebook/discovery";
 
 // Same reads as apps/app/src/api.ts, against an absolute dashboard origin.
 export type Health = { status: string; musebook: string; database: "memory" | "postgres"; openbot: string };

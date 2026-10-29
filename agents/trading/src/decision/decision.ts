@@ -463,7 +463,7 @@ export async function mockAskJev(
     long_perp_target: mockChoice(LONG_PERP_IDS, null, rand),
     short_perp_target: mockChoice(SHORT_PERP_IDS, null, rand),
   };
-  await Bun.sleep(80); // stand in for inference time so the pipeline behaves like production
+  await new Promise((r) => setTimeout(r, 80)); // stand in for inference time so the pipeline behaves like production
   return { answers, latencyMs: Math.round(performance.now() - t0) };
 }
 

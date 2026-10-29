@@ -17,14 +17,14 @@ keeps working; the breaking surface is deliberately tiny.
   `agent_token`, `searchAgentAssets()`, `fetchAgentIdentity()`,
   lifecycle checks); full EIP-8004 document shape (rich services,
   `x402Support`).
-- **`@themusebook/agent-kit-finance`** (new) — Genesis
+- **`@musebook/finance`** (new) — Genesis
   `createAndRegisterLaunch` builder + HTTP adapter with the Genesis
   error taxonomy; `setAgentTokenV1` behind an
   `acknowledgePermanent: true` gate.
 - **payments** — the three Metaplex x402 modes as typed schemes,
   USDC-classic-SPL validation, execute-mode PDA-SOL checks, reactive XOR
   proactive style guard, Mech delegate client, 24h auth-token stores.
-- **`@themusebook/agent-kit-templates`** (new) — x402 / raydium / pump /
+- **`@musebook/templates`** (new) — x402 / raydium / pump /
   stonk / rwa presets.
 - **client** — `kit.finance.*` and `kit.templates.*` namespaces.
 

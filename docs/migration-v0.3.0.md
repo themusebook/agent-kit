@@ -1,11 +1,11 @@
 # Migration — v0.3.0
 
 v0.3 is additive for the SDK packages (all bumped 0.2.0 → 0.3.0;
-`@themusebook/agent-kit-x402-metaplex` and the starter-kit CLI keep
+`@musebook/x402-metaplex` and the starter-kit CLI keep
 their own version lines). Two new packages, one deepened preset
 family, one corrected claim.
 
-## New: `@themusebook/agent-kit-stonk`
+## New: `@musebook/stonk`
 
 A real client for the official Stonkfun Developer API —
 `createStonkClient()` or `kit.stonk.*`. Reads (v1 envelope + v2
@@ -36,7 +36,7 @@ to release" custody flow). Where those conflict with the official
 API documentation, **the API documentation wins** in this package;
 the custody flow is not implemented here.
 
-## New: `@themusebook/agent-kit-perps`
+## New: `@musebook/perps`
 
 Venue descriptors + pre-trade risk gate + order descriptors + the
 JEV decision engine — `kit.perps.*` or standalone. Grounded in

@@ -1,13 +1,43 @@
 {
-  "name": "@themusebook/agent-kit-identity",
-  "version": "0.3.0",
+  "name": "@musebook/identity",
+  "version": "0.1.0",
   "description": "Musebook Agent Kit — EIP-8004 identity: registration docs, mint flow, resolve/verify, Asset Signer PDA.",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "dependencies": {
+    "@musebook/wallet": "workspace:*",
     "@solana/web3.js": "^1.98.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/identity"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/identity#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

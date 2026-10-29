@@ -1,4 +1,4 @@
-# @themusebook/agent-kit-x402-metaplex
+# @musebook/x402-metaplex
 
 Metaplex x402 agents for the kit: paid inference (OpenAI-compatible chat + images), paid Solana RPC/DAS,
 free discovery (`getModels`, `getPricing`) and delegate status — built on

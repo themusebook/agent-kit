@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TransactionSigner } from "@themusebook/agent-kit-wallet";
+import type { TransactionSigner } from "@musebook/wallet";
 import {
   buildAgentMint,
   buildRegisterIdentityV1,

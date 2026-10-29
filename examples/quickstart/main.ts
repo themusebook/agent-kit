@@ -7,7 +7,7 @@
  * faucet first. Steps 1–4 run end to end; step 5 pays only if PAID_URL is
  * set to a live 402-gated resource.
  */
-import { createAgentKit, buildRegistrationDocument } from "@themusebook/agent-kit";
+import { createAgentKit, buildRegistrationDocument } from "@musebook/agent-kit";
 import { devnetSigner } from "./signer";
 
 const signer = devnetSigner();

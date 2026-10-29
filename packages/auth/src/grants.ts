@@ -1,4 +1,4 @@
-import { deriveAssetSignerPda } from "@themusebook/agent-kit-identity";
+import { deriveAssetSignerPda } from "@musebook/identity";
 
 /**
  * Executive delegation — READ-ONLY helpers.

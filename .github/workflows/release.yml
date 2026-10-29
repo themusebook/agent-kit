@@ -1,0 +1,29 @@
+name: Release
+# Manual only. A dry run packs every @musebook package; a real publish also needs
+# a maintainer to approve the `npm-publish` environment, which holds NPM_TOKEN.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to npm (false = dry run)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  id-token: write # npm provenance
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.publish && 'npm-publish' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
+      - run: pnpm install --no-frozen-lockfile
+      - run: cd agents/trading && bun install --frozen-lockfile
+      - run: cd packages/cli && npm ci
+      - run: node scripts/release/publish.mjs ${{ inputs.publish && '--publish' || '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish && secrets.NPM_TOKEN || '' }}

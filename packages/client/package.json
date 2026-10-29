@@ -1,22 +1,51 @@
 {
-  "name": "@themusebook/agent-kit",
-  "version": "0.3.0",
+  "name": "@musebook/agent-kit",
+  "version": "0.1.0",
   "description": "Musebook Agent Kit — batteries-included client facade.",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "dependencies": {
-    "@themusebook/agent-kit-identity": "workspace:*",
-    "@themusebook/agent-kit-auth": "workspace:*",
-    "@themusebook/agent-kit-discovery": "workspace:*",
-    "@themusebook/agent-kit-payments": "workspace:*",
-    "@themusebook/agent-kit-wallet": "workspace:*",
-    "@themusebook/agent-kit-finance": "workspace:*",
-    "@themusebook/agent-kit-templates": "workspace:*",
-    "@themusebook/agent-kit-stonk": "workspace:*",
-    "@themusebook/agent-kit-perps": "workspace:*",
+    "@musebook/identity": "workspace:*",
+    "@musebook/auth": "workspace:*",
+    "@musebook/discovery": "workspace:*",
+    "@musebook/payments": "workspace:*",
+    "@musebook/wallet": "workspace:*",
+    "@musebook/finance": "workspace:*",
+    "@musebook/templates": "workspace:*",
+    "@musebook/stonk": "workspace:*",
+    "@musebook/perps": "workspace:*",
     "@solana/web3.js": "^1.98.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/client#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

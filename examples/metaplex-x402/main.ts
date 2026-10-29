@@ -9,7 +9,7 @@
 import {
   spendGuardFromEnv, signerFromEnv, createStandardPayer, createCoreAssetPayer, createDelegatedPayer,
   createX402Tools, checkCapsAgainstPricing, delegateStatus,
-} from "@themusebook/agent-kit-x402-metaplex";
+} from "@musebook/x402-metaplex";
 
 const guard = spendGuardFromEnv();
 const discovery = createX402Tools({ fetch: globalThis.fetch, guard });

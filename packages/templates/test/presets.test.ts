@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateRegistrationDocument } from "@themusebook/agent-kit-identity";
+import { validateRegistrationDocument } from "@musebook/identity";
 import {
   AGENT_TEMPLATES,
   buildTemplateRegistration,

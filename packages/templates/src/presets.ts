@@ -3,7 +3,7 @@ import {
   type RegistrationDocument,
   type RegistrationService,
   type SupportedTrustMode,
-} from "@themusebook/agent-kit-identity";
+} from "@musebook/identity";
 
 /**
  * Venue agent templates: first-class presets that pair registration-
@@ -157,7 +157,7 @@ export const STONK_AGENT: AgentTemplatePreset = {
   id: "stonk-agent",
   name: "Stonk Agent",
   summary:
-    "An agent on stonk.fun (Stonkfun launchpad) backed by the kit's REAL Stonkfun Developer API client (@themusebook/agent-kit-stonk): reads, API-built launches, BYO LaunchLab launch plans, and Fee Key NFT fee claims. Non-custodial — no API key exists; the caller's wallet signature authorizes launches and claims.",
+    "An agent on stonk.fun (Stonkfun launchpad) backed by the kit's REAL Stonkfun Developer API client (@musebook/stonk): reads, API-built launches, BYO LaunchLab launch plans, and Fee Key NFT fee claims. Non-custodial — no API key exists; the caller's wallet signature authorizes launches and claims.",
   services: [
     { name: "trading", domains: ["stonkfun", "launchpad"] },
     { name: "fees", domains: ["stonkfun"] },
@@ -181,7 +181,7 @@ export const STONK_AGENT: AgentTemplatePreset = {
   ],
   sources: [
     "Official Stonkfun Developer API documentation (owner-supplied, authoritative — supersedes the v0.2 launch-disabled claim)",
-    "agent-kit stonk package (@themusebook/agent-kit-stonk): the client this preset references",
+    "agent-kit stonk package (@musebook/stonk): the client this preset references",
     "local skill local-stonkfun + themusebook/solana-rwa-agents agents/stonkfun.ts (earlier API surface notes; where they conflict with the official API doc, the doc wins — see docs/migration-v0.3.0.md)",
   ],
 };
@@ -238,7 +238,7 @@ export const PERPS_AGENT: AgentTemplatePreset = {
     launchRoute: "none",
     notes: [
       "No token launch is implied by this preset: a perps agent's finance is margin + risk, not a launch route. (If the agent also wants a token, the Genesis route in finance applies independently.)",
-      "Venue variant IMPERIAL (grounded): @themusebook/agent-kit-perps describes orders in the shapes the owner's stacks use — limit price carried in slPrice, TP/SL attached AFTER fill as separate orders (the working bodies always send empty orderFlags), TWAMM block-segmented orders via placeTwammOrder, volatility-scaled grid plans, and Touch probability markets at catalog level (no live Touch order path exists in the sources).",
+      "Venue variant IMPERIAL (grounded): @musebook/perps describes orders in the shapes the owner's stacks use — limit price carried in slPrice, TP/SL attached AFTER fill as separate orders (the working bodies always send empty orderFlags), TWAMM block-segmented orders via placeTwammOrder, volatility-scaled grid plans, and Touch probability markets at catalog level (no live Touch order path exists in the sources).",
       "Venue variant PHOENIX-DIRECT (market-data only): the owner's repos reach Phoenix THROUGH Imperial; no native Phoenix placement is described anywhere in the inspected sources, so the kit describes Phoenix reads only and does not invent placement semantics.",
       "Risk gate (perps.evaluatePreTradeRisk) mirrors the source thresholds: $5 min / $1,000 max notional per order, 2x max leverage, $5,000 max total exposure, kill switch, empty-book refusal — refusals throw, they never warn-and-continue. Dry-run is the default posture.",
     ],
@@ -253,7 +253,7 @@ export const PERPS_AGENT: AgentTemplatePreset = {
   sources: [
     "Solizardking/clawd-agents-perps (Imperial stack: imperialAgent/imperialBot/imperialWs, twammAutomation, vulcanCatalog; agent-registry identity layers)",
     "Solizardking/clawd-perps-agent (near-identical Imperial core + financial/money.ts risk thresholds + financialClawd tests; agentgateway CLI order semantics)",
-    "agent-kit perps package (@themusebook/agent-kit-perps): venue descriptors, risk gate, order descriptors grounded in those repos",
+    "agent-kit perps package (@musebook/perps): venue descriptors, risk gate, order descriptors grounded in those repos",
     "NOT grounded: native Phoenix order placement (absent from both repos) — see docs/perps.md for the full overlap/difference notes",
   ],
 };
