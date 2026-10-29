@@ -121,6 +121,79 @@ export async function resolveAgent(
   };
 }
 
+/**
+ * The directory-record shape shared by the hub snapshot
+ * ({hub}/live/agents.json) and the agents repo's musebook/agents.json:
+ * the same agent can be spelled `update_authority` (live snapshot) or
+ * `updateAuthority` (repo envelope). Only the fields read here are typed.
+ */
+export interface DirectoryRecordLike {
+  assetId?: string;
+  assetAddress?: string;
+  name?: string;
+  assetSigner?: string;
+  asset_signer?: string;
+  update_authority?: string;
+  updateAuthority?: string;
+  ownerWallet?: string;
+  metadataUri?: string;
+  metadata_uri?: string;
+  json_uri?: string;
+  agentToken?: string;
+  agent_token?: string;
+  network?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Resolve an agent from a DIRECTORY RECORD (no RPC needed): the directory
+ * snapshot is itself a resolution source — it carries the asset id, the
+ * Asset Signer PDA, the owner (update authority) wallet, the registration
+ * metadata URI, and the agent_token binding. The signer is still
+ * cross-checked against the local PDA derivation, so a record that lies
+ * about its signer resolves with isAgent=false and a problem string from
+ * verifyDirectoryRecord().
+ */
+export function resolveFromDirectoryRecord(record: DirectoryRecordLike): ResolvedAgent {
+  const assetAddress = record.assetId ?? record.assetAddress ?? "";
+  let derived = "";
+  try {
+    if (assetAddress) derived = deriveAssetSignerPda(assetAddress).toBase58();
+  } catch {
+    derived = ""; // not a valid pubkey — exists/isAgent stay false below
+  }
+  const claimedSigner = record.assetSigner ?? record.asset_signer ?? null;
+  const registrationUri =
+    record.metadataUri ?? record.metadata_uri ?? record.json_uri ?? null;
+  return {
+    assetAddress,
+    exists: assetAddress.length > 0,
+    isAgent: registrationUri !== null && claimedSigner !== null && claimedSigner === derived,
+    owner: record.update_authority ?? record.updateAuthority ?? record.ownerWallet ?? null,
+    name: record.name ?? null,
+    registrationUri,
+    assetSigner: derived,
+    agentToken: record.agentToken ?? record.agent_token ?? null,
+    raw: null,
+  };
+}
+
+/** Problems with a directory record's own claims (empty = self-consistent). */
+export function verifyDirectoryRecord(record: DirectoryRecordLike): string[] {
+  const problems: string[] = [];
+  const resolved = resolveFromDirectoryRecord(record);
+  if (!resolved.exists) problems.push("record has no assetId");
+  const claimedSigner = record.assetSigner ?? record.asset_signer;
+  if (!claimedSigner) {
+    problems.push("record has no assetSigner");
+  } else if (resolved.exists && claimedSigner !== resolved.assetSigner) {
+    problems.push("record assetSigner does not match the derived Asset Signer PDA");
+  }
+  if (!resolved.registrationUri) problems.push("record has no metadata/registration URI");
+  if (!resolved.owner) problems.push("record has no update authority / owner wallet");
+  return problems;
+}
+
 /** Fetch + validate the registration document an agent points at. */
 export async function fetchRegistrationDocument(
   uri: string,

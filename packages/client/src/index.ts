@@ -3,6 +3,7 @@ import {
   deriveAssetSignerPda,
   registerIdentity,
   resolveAgent,
+  resolveFromDirectoryRecord,
   verifyAgent,
   fetchRegistrationDocument,
   buildRegistrationDocument,
@@ -22,9 +23,13 @@ import {
 import {
   searchDirectory,
   getDirectoryAgent,
+  fetchDirectorySnapshot,
   inspectProvider,
   getMessagingDescriptor,
   negotiateContentProfile,
+  fetchSkillsCatalog,
+  searchSkills,
+  skillsTarballUrl,
   type MessagingDescriptor,
 } from "@themusebook/agent-kit-discovery";
 import {
@@ -69,6 +74,8 @@ export interface AgentKit {
   identity: {
     register(input: Omit<RegisterIdentityInput, "signer">): Promise<import("@themusebook/agent-kit-identity").RegisterIdentityResult>;
     resolve(asset: string): Promise<import("@themusebook/agent-kit-identity").ResolvedAgent>;
+    /** Resolve from a directory record (snapshot/agents-repo shape) — no RPC. */
+    resolveRecord(record: import("@themusebook/agent-kit-identity").DirectoryRecordLike): import("@themusebook/agent-kit-identity").ResolvedAgent;
     verify(asset: string): Promise<{ ok: boolean; problems: string[] }>;
     assetSigner(asset: string): ReturnType<typeof deriveAssetSignerPda>;
     registrationDocument(uri: string): Promise<unknown>;
@@ -84,6 +91,10 @@ export interface AgentKit {
   discovery: {
     search(query: string, limit?: number): Promise<import("@themusebook/agent-kit-discovery").DirectoryAgent[]>;
     agent(idOrWallet: string): Promise<import("@themusebook/agent-kit-discovery").DirectoryAgent | null>;
+    snapshot(): Promise<import("@themusebook/agent-kit-discovery").DirectorySnapshot>;
+    skills(query?: string, limit?: number): Promise<import("@themusebook/agent-kit-discovery").SkillCatalogEntry[]>;
+    skillsCatalog(): Promise<import("@themusebook/agent-kit-discovery").SkillCatalogEntry[]>;
+    skillsTarballUrl(): string;
     provider(url?: string): Promise<import("@themusebook/agent-kit-discovery").ProviderSummary>;
     messagingDescriptor(baseUrl?: string): Promise<MessagingDescriptor>;
     messagingProfiles(agent: { registrationUri: string | null } | MessagingDescriptor): Promise<string[]>;
@@ -148,6 +159,7 @@ export function createAgentKit(
         );
       },
       resolve: (asset) => resolveAgent({ rpc: context.rpc, network: context.network }, asset),
+      resolveRecord: (record) => resolveFromDirectoryRecord(record),
       async verify(asset) {
         const r = await verifyAgent({ rpc: context.rpc, network: context.network }, asset);
         return { ok: r.ok, problems: r.problems };
@@ -172,6 +184,10 @@ export function createAgentKit(
     discovery: {
       search: (query, limit) => searchDirectory(discoveryConfig, query, { limit }),
       agent: (idOrWallet) => getDirectoryAgent(discoveryConfig, idOrWallet),
+      snapshot: () => fetchDirectorySnapshot(discoveryConfig),
+      skills: (query, limit) => searchSkills(discoveryConfig, query ?? "", { limit }),
+      skillsCatalog: () => fetchSkillsCatalog(discoveryConfig),
+      skillsTarballUrl: () => skillsTarballUrl(discoveryConfig),
       provider: (url) => inspectProvider(url ?? context.hub),
       messagingDescriptor: (baseUrl) => getMessagingDescriptor(baseUrl ?? context.hub),
       async messagingProfiles(agent) {
