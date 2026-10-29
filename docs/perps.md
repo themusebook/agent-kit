@@ -109,9 +109,22 @@ hard-caps 2x. The kit's default policy follows the stricter 2x.
 
 ## The decision engine (`decision.ts`) — JEV pattern
 
-From `jev-trader-solana` (decision loop in `decision.ts`/`trader.ts`,
-CoinGecko regime context in `regime.ts`, venue modules for
-jupiter/dflow/imperial/pump/stonk):
+From `jev-trader-solana` — precisely: its `decision.ts` offers a
+**fixed operation enum** (BUY_SPOT / SELL_SPOT / LONG_PERP /
+SHORT_PERP / HOLD / PAUSE) plus slippage-target heads (s10/s25/s50)
+to a TypeSafe/JEV judgment; the model never chooses size, venue or
+price. Answers follow the `validateChoice` contract (probability
+keys exactly the id set, finite in [0,1], sum ≈ 1, choice = argmax);
+failures return a **PAUSE sentinel** (`jevOk: false` + reason);
+sub-0.9-confidence directional answers downgrade to HOLD; venue
+reachability/staleness is enforced after the judgment in
+deterministic code. A separate regime judgment (bullish/bearish/chop
++ momentum + volatility) can pause the cycle outright. Paper is the
+repo's only implemented mode.
+
+The kit generalizes the reachability enforcement INTO the space —
+the dynamic-space form the repo's README attributes to the
+companion `clawd-jev-trading-machine`:
 
 ```
 buildActionSpace(reachableVenues)   // ONLY reachable venues contribute actions; hold is always present
@@ -122,30 +135,32 @@ engine.judge(rawJudgment)           // → { status: "decided", … } | { status
 Invariants, enforced and tested:
 
 - **Fail-closed.** Malformed judgments, unknown actions,
-  out-of-bounds parameters, bad confidence → `blocked`. Never a
-  default action, never a coercion. (The repo's judge gate is
-  default-deny the same way: an unparseable verdict is an objection;
-  an approval carrying an empty objection field is itself no
-  verdict.)
+  out-of-bounds parameters, bad confidence → `blocked` (the kit's
+  verdict name; the repo's equivalent is the PAUSE sentinel with
+  `jevOk: false`). Never a default action, never a coercion.
 - **Recall never widens the space.** Memory notes inform the judge;
   the space is built from venue reachability alone. A judgment
   naming a recalled-but-unreachable action is blocked, with the
-  reason saying exactly that.
-- **Paper by default.** The repo is stricter still — `runLive()`
-  throws "not enabled in v1". The kit's `mode: "live"` requires
-  `allowLive: true` at construction as an explicit operator
-  extension, and the engine still only returns verdicts; execution
-  stays with the caller behind the risk gate above.
+  reason saying exactly that. (Kit design: jev-trader-solana itself
+  has NO cross-run memory — in-process state plus an append-only
+  events journal only.)
+- **Paper by default.** The repo is stricter still — paper is its
+  only implemented mode, with no live path and no signing code. The
+  kit's `mode: "live"` requires `allowLive: true` at construction
+  as an explicit operator extension, and the engine still only
+  returns verdicts; execution stays with the caller behind the
+  risk gate above.
 
-> Grounding precision: jev-trader-solana has **no single canonical
-> "judgment" type** — the pattern is a pipeline (decision.ts's
-> discriminated `TradeAction` union + `TradeDecision`, book.ts's
-> numbers-only `Book`/`LegPlan` guardrail, jev.ts's approve/objection
-> gate, trader.ts's paper-only loop, memory.ts's decay-weighted
-> journal recall, regime.ts's CoinGecko narrative labels
-> calm_uptrend/chop/panic/rebound/mania). The kit mirrors those
-> seams with its own type names; it does not claim the repo's exact
-> exported identifiers beyond the ones named here. The repo's memory
-> is a LOCAL append-only journal with tau-decay recall (~7-day
-> half-life) — not Supermemory (that lives in the separate
-> clawd-jev-trading-machine project).
+> Grounding precision: the portable pieces mirrored from
+> jev-trader-solana are the choice-answer contract
+> (`validateChoice`), the fail-closed sentinel discipline, the
+> confidence downgrade, deterministic sizing/routing outside the
+> model, and the regime-gate shape. The reachability-built action
+> space, `decided|blocked` verdict names, and recall-as-context are
+> the kit's generalizations — the dynamic-space pattern is
+> attributed by jev-trader-solana's README to the companion repo
+> `clawd-jev-trading-machine`, which was not the inspection target
+> here. (An earlier draft of this doc misattributed companion-repo
+> shapes — signed amountUsd, basket legs, narrative/judge two-model
+> split, decay-weighted recall — to jev-trader-solana; corrected
+> against the file-level inspection.)

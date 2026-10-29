@@ -262,7 +262,7 @@ export const DECISION_AGENT: AgentTemplatePreset = {
   id: "decision-agent",
   name: "Decision Agent",
   summary:
-    "An agent whose trades are chosen by a typed judgment (TypeSafe/JEV pattern) over a dynamic action space built from the venues reachable right now. Fail-closed to BLOCKED on any malformed or out-of-space answer; paper/dry-run by default; memory recall informs but never widens the action space.",
+    "An agent whose trades are chosen by a typed judgment (TypeSafe/JEV pattern) over an action space built from the venues reachable right now — the kit's generalization of jev-trader-solana's fixed operation set with reachability enforced in code. Fail-closed to BLOCKED on any malformed or out-of-space answer; paper/dry-run by default; memory recall informs but never widens the action space.",
   services: [
     { name: "decision", domains: ["trading", "jev", "typesafe"] },
     { name: "trading", domains: ["multi-venue"] },
@@ -273,11 +273,12 @@ export const DECISION_AGENT: AgentTemplatePreset = {
     launchRoute: "none",
     notes: [
       "Decision loop (perps.decision): buildActionSpace(reachableVenues) → DecisionEngine.request(context incl. regime + recall) → judge(rawJudgment) validates shape, space membership and parameter bounds → verdict decided|blocked.",
-      "Action conventions from the repo: the space is a closed discriminated union over the venues; sells are NEGATIVE amountUsd (one signed field decides direction — there is no separate amount), basket legs carry poolId + weight in (0,1] with Σ weights ≤ 1, and confidence (0..1) is metadata that never gates execution.",
-      "Two-model split in the repo: the NARRATIVE model proposes (it never computes sizes — a numbers-only guardrail recomputes them), and a separate JUDGE model approves or objects over the structured proposal, default-deny: an unparseable verdict is an objection, and an approval with an empty objection field is itself treated as no verdict.",
+      "What jev-trader-solana itself does (the grounding): a FIXED operation enum (BUY_SPOT/SELL_SPOT/LONG_PERP/SHORT_PERP/HOLD/PAUSE); the model picks the operation plus one slippage target (s10/s25/s50) — size, routing and risk are deterministic code, never the model's; answers follow the validateChoice contract (probability keys exactly the id set, values finite in [0,1], sum ≈ 1, choice = argmax); failures return a PAUSE sentinel (jevOk: false + reason), and a directional answer under 0.9 confidence is downgraded to HOLD.",
+      "The kit's reachability-built action space generalizes that repo's post-judgment reachability enforcement (blocked executions carry machine reasons: feeds-stale, side-blocked, spread-exceeds-slippage, cap-full) into the space itself — the dynamic-space form is the pattern the repo's README attributes to the companion clawd-jev-trading-machine, not jev-trader-solana's own internals.",
+      "Regime is a SEPARATE judgment in the repo (bullish/bearish/chop + momentum + 0–3 volatility over CoinGecko + book features): a paused regime stops the cycle before any decision request. It rides here as decision context.",
       "The action space is built ONLY from reachable venues (plus the always-available hold). An action from an unreachable venue — however good the memory of it — is out of space and BLOCKED.",
-      "Paper by default: the engine returns plans. The source repo is stricter — its live mode is a hard refusal ('not enabled in v1'); the kit's live verdicts exist only behind an explicit operator opt-in (allowLive: true) at construction, and even then execution stays with the caller behind the perps risk gate.",
-      "Regime context (trend/volatility, CoinGecko-sourced in the source stack) rides as decision context; it informs the judgment, it does not gate or widen anything by itself.",
+      "Paper by default: the engine returns plans. The source repo is stricter — paper is its ONLY implemented mode (no live path, no signing code at all); the kit's live verdicts exist only behind an explicit operator opt-in (allowLive: true) at construction, and even then execution stays with the caller behind the perps risk gate.",
+      "Regime context (bullish/bearish/chop + momentum + volatility, CoinGecko-sourced in the source repo) rides as decision context; it informs the judgment, it does not gate or widen anything by itself.",
     ],
   },
   requiredCaps: [
@@ -287,9 +288,9 @@ export const DECISION_AGENT: AgentTemplatePreset = {
     "Paper first: run the loop in paper mode against live data before any live opt-in; the source stack's own posture is dry-run only.",
   ],
   sources: [
-    "Solizardking/jev-trader-solana (decision.ts/trader.ts decision loop, regime.ts CoinGecko regime context, dynamic venue action space across jupiter/dflow/imperial/pump/stonk modules)",
+    "Solizardking/jev-trader-solana (decision.ts fixed Operation enum + validateChoice + fail-closed PAUSE sentinel, trader.ts paper-only loop + post-judgment reachability blocks, regime.ts regime gate, jev.ts subprocess bridge)",
     "local skill local-clawd-jev-trading (TypeSafe JEV decision brain, dynamic action space, dry-run-only posture)",
-    "agent-kit perps package (decision.ts): buildActionSpace / DecisionEngine with fail-closed judging",
+    "agent-kit perps package (decision.ts): buildActionSpace / DecisionEngine — the kit's reachability-built generalization; the dynamic-space pattern is attributed by jev-trader-solana's README to the companion repo clawd-jev-trading-machine",
   ],
 };
 
