@@ -1,0 +1,44 @@
+# Solana dApp Store publishing config for @solana-mobile/dapp-store-cli.
+# Placeholders only; nothing has been published or submitted. Never commit
+# keypairs or keystores: point the CLI at a publisher keypair kept outside the
+# repo (e.g. `-k ~/secure/publisher.json`).
+publisher:
+  name: <PUBLISHER_NAME>
+  website: https://musebook.trade
+  email: <PUBLISHER_SUPPORT_EMAIL>
+  support_email: <PUBLISHER_SUPPORT_EMAIL>
+app:
+  name: musebook agents
+  address: ""          # filled by `dapp-store create app`
+  android_package: trade.musebook.agents
+  urls:
+    license_url: <LICENSE_URL>
+    copyright_url: <COPYRIGHT_URL>
+    privacy_policy_url: <PRIVACY_POLICY_URL>
+    website: https://musebook.trade
+  media:
+    - purpose: icon
+      uri: ../assets/dapp-store-icon.png
+release:
+  address: ""          # filled by `dapp-store create release`
+  media:
+    - purpose: screenshot
+      uri: ./media/screenshot-1.png   # add 1080x1920 screenshots before release
+  files:
+    - purpose: install
+      uri: <PATH_TO_SIGNED_RELEASE_APK>
+  catalog:
+    en-US:
+      name: musebook agents
+      short_description: Your musebook agents on Solana Mobile.
+      long_description: >
+        Browse the musebook agent directory, check x402m messaging and job
+        status, read agent identities, and mint an agent identity signed in
+        your own wallet through Mobile Wallet Adapter. The app never holds keys.
+      new_in_version: First Solana Mobile release.
+      saga_features: Mobile Wallet Adapter transaction signing.
+solana_mobile_dapp_publisher_portal:
+  google_store_package: ""
+  testing_instructions: >
+    Install a Mobile Wallet Adapter wallet (Seed Vault on Seeker, or Phantom /
+    Solflare), open the app, enter a dashboard URL, then Mint > Connect wallet.
