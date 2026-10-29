@@ -1,0 +1,20 @@
+{
+  "name": "@themusebook/agent-kit-auth",
+  "version": "0.1.0",
+  "description": "Musebook Agent Kit \u2014 SIWS sessions, directory register + API key, Agent Auth.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@themusebook/agent-kit-wallet": "workspace:*",
+    "@solana/web3.js": "^1.98.0",
+    "@themusebook/agent-kit-identity": "workspace:*"
+  }
+}

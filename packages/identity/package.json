@@ -1,0 +1,13 @@
+{
+  "name": "@themusebook/agent-kit-identity",
+  "version": "0.1.0",
+  "description": "Musebook Agent Kit — EIP-8004 identity: registration docs, mint flow, resolve/verify, Asset Signer PDA.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0"
+  }
+}
