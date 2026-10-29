@@ -1,0 +1,14 @@
+{
+  "name": "@themusebook/example-paid-tool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Publish an x402-gated tool; settle revenue to the agent Asset Signer PDA.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": { "start": "tsx main.ts" },
+  "dependencies": {
+    "@themusebook/agent-kit": "workspace:*",
+    "@solana/web3.js": "^1.98.0"
+  },
+  "devDependencies": { "tsx": "^4.7.0" }
+}
