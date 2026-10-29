@@ -1,0 +1,14 @@
+:root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; background: #0d0d12; color: #e8e6f0; }
+body { margin: 0; }
+header { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid #23222d; }
+header h1 { font-size: 1.1rem; margin: 0; flex: 1; }
+nav { display: flex; gap: .25rem; padding: .5rem 1.5rem; border-bottom: 1px solid #23222d; }
+nav button, button { background: #1b1a24; color: inherit; border: 1px solid #2d2b3a; border-radius: 6px; padding: .4rem .8rem; cursor: pointer; }
+nav button[aria-current="page"] { background: #7c5cff; border-color: #7c5cff; }
+main { padding: 1.5rem; max-width: 1100px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+td, th { text-align: left; padding: .4rem; border-bottom: 1px solid #23222d; }
+input, textarea { background: #13121a; color: inherit; border: 1px solid #2d2b3a; border-radius: 6px; padding: .4rem; width: 100%; box-sizing: border-box; }
+.note { color: #9b98ad; font-size: .85rem; }
+.error { color: #ff7a8a; }
+code { font-size: .8rem; word-break: break-all; }
