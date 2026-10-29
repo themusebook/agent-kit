@@ -1,6 +1,6 @@
 # Venue templates (`@themusebook/agent-kit-templates`)
 
-Five first-class presets. Each pairs **registration-document defaults**
+Seven first-class presets. Each pairs **registration-document defaults**
 (services, `x402Support`, supported trust) with **finance defaults**
 (launch route, graduation) and the **required caps** — the capabilities
 an operator must consciously grant for that venue. Every preset lists
@@ -16,9 +16,11 @@ per service name).
 |---|---|---|---|
 | `x402-agent` | none (revenue = payments) | ✅ | sells pay-per-call services, settles USDC to the Asset Signer PDA |
 | `raydium-agent` | Genesis bonding curve → Raydium CPMM graduation | — | launches via Genesis, quotes/builds Raydium swaps for the user to sign |
-| `pump-agent` | pump.fun bonding curve | — | identity/metadata template; pump.fun execution stays in the operator's own tooling |
-| `stonk-agent` | stonk.fun via Raydium LaunchLab | — | LaunchLab plan-first launches; position-NFT creator seat; fee claims |
+| `pump-agent` | pump.fun bonding curve | — | finance pump flow descriptors (create-coin/swap/fees/invoices); user co-signs everything |
+| `stonk-agent` | stonk.fun — API path or BYO LaunchLab, chosen from `/stats` at runtime | — | backed by the real `@themusebook/agent-kit-stonk` client (see stonk.md) |
 | `rwa-agent` | Genesis bonding curve | — | agent paired 1:1 with a tokenized real-world asset; trades from the Asset Signer PDA |
+| `perps-agent` | none (margin + risk, not a launch) | — | Phoenix-routed perps: Imperial descriptors + risk gate; Phoenix-direct is market-data only (see perps.md) |
+| `decision-agent` | none | — | JEV typed judgment over a dynamic, reachability-built action space; fail-closed, paper default (see perps.md) |
 
 ## The venues, honestly
 
@@ -29,16 +31,31 @@ per service name).
 - **raydium-agent** — the non-negotiable from our Raydium stack: the
   agent **builds**, the user **signs** (browser wallet). Quotes expire
   in ~30s; exact terms get fresh approval every time.
-- **pump-agent** — **the kit ships no pump.fun SDK.** The preset
-  standardizes identity + caps; the launch stream (pump.musebook.trade)
-  is **observation, not a trading signal** — verify on-chain and rug-
-  check before acting on anything it shows.
-- **stonk-agent** — carries a live-status warning: the venue's API
-  prepare-launch flow (`POST /launches/prepare`) currently returns 503
-  ("launch through LaunchLab instead", verified 2026-09-18 against
-  `/stats`). The preset therefore routes launches through the LaunchLab
-  planner (plan first, signs nothing) and documents the creator
-  position NFT + fee-claim flow from the RWA repo's `agents/stonkfun.ts`.
+- **pump-agent** — **deepened in v0.3**: the finance package now
+  ships pump.fun flow descriptors for the fun-block agent API
+  (create-coin, swap, collect-fees, fee-sharing config, agent-payment
+  invoices). The API returns unsigned transactions; the user
+  co-signs; `slippageBps` is required on every swap; the launch
+  stream (pump.musebook.trade) remains **observation, not a trading
+  signal** — verify on-chain and rug-check before acting.
+- **stonk-agent** — **corrected in v0.3**: the v0.2 claim that the
+  API prepare-launch flow was disabled (a 2026-09-18 probe) is
+  superseded by the official Stonkfun Developer API documentation.
+  The preset is now backed by the real client
+  (`@themusebook/agent-kit-stonk`, docs/stonk.md): both launch paths
+  exist, `/stats` decides which is live at runtime, BYO LaunchLab
+  launches are planned + adoption-validated, and Fee Key NFT claims
+  carry typed 403/409 semantics. See docs/migration-v0.3.0.md.
+- **perps-agent** — venue variants with asymmetric grounding, stated
+  on the preset's face: Imperial (Phoenix-routed) is grounded in the
+  owner's two perps repos; Phoenix-direct is market-data only
+  because no inspected source places native Phoenix orders. Risk
+  gate + order descriptors live in `@themusebook/agent-kit-perps`
+  (docs/perps.md).
+- **decision-agent** — the JEV pattern from jev-trader-solana:
+  typed judgment over a dynamic action space built from reachable
+  venues, fail-closed to BLOCKED, paper by default, memory recall
+  as context only (docs/perps.md).
 - **rwa-agent** — grounded in the owner's RWA repo (see below):
   pairing (one agent per RWA unless `replace: true`), the Genesis
   launch shape, Asset-Signer-sourced trades, the program's instruction

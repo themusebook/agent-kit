@@ -61,12 +61,29 @@ const launch = kit.finance.buildLaunch({
   token: { name: "My Agent", symbol: "AGENT", image: "https://gateway.irys.xyz/<img>" },
 });
 
-// Or start from a venue template (x402 / raydium / pump / stonk / rwa)
+// Or start from a venue template (x402 / raydium / pump / stonk / rwa / perps / decision)
 const preset = kit.templates.get("rwa-agent");
 const doc = kit.templates.registration(preset, {
   name: "my-agent", description: "…", image: "ipfs://<img>",
   endpoints: { RWA: "https://agent.example/rwa", trading: "https://agent.example/trade" },
 });
+```
+
+## v0.3 — a real Stonkfun client, pump flows, perps + decision agents
+
+```ts
+// Stonkfun: no API key exists — your signature on the fee payment IS
+// the authorization. Read /stats first; it decides which launch path is live.
+const stats = await kit.stonk.getStats();
+const path = kit.stonk.chooseLaunchPath(stats); // "api" | "launchlab"
+const fees = await kit.stonk.getTokenFees(mint); // check fees.scope before looping mints!
+
+// pump.fun flow descriptors (finance): unsigned tx back, user co-signs
+const swap = buildSwapRequest({ mint, side: "buy", amountSol: 0.1, slippageBps: 250, marketState: "bonding-curve" });
+
+// Perps: risk gate first (throws on refusal), then a caller-signed descriptor
+kit.perps.evaluatePreTradeRisk({ policy, bookNonEmpty: true, notionalUsd: 200, leverage: 2, currentExposureUsd: 0 });
+const order = kit.perps.buildPlaceOrder({ pairId: "SOL-PERP", side: "bid", sizeInBaseLots: 10, limitPriceUsd: 150 });
 ```
 
 ## Packages
@@ -79,8 +96,10 @@ const doc = kit.templates.registration(preset, {
 | `@themusebook/agent-kit-discovery` | Directory/registry search, provider inspection, x402m descriptor + contentProfiles |
 | `@themusebook/agent-kit-payments` | x402 pay + receipt verify, the three Metaplex x402 modes (wallet / Core direct / Mech), atomic-batch builder, x402m mailbox |
 | `@themusebook/agent-kit-wallet` | OWS policy-gated signer interface, trust ladder gating |
-| `@themusebook/agent-kit-finance` | Genesis agent-token launch builders + the permanent setAgentTokenV1 binding (acknowledge-gated) |
-| `@themusebook/agent-kit-templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent |
+| `@themusebook/agent-kit-finance` | Genesis agent-token launch builders + the permanent setAgentTokenV1 binding (acknowledge-gated) + pump.fun flow descriptors (create-coin / swap / fees / invoices) |
+| `@themusebook/agent-kit-templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent, perps-agent, decision-agent |
+| `@themusebook/agent-kit-stonk` | Real Stonkfun Developer API client: reads (v1+v2), API-built launches, BYO LaunchLab planning + adoption validation, Fee Key NFT claims. No API key — caller signs |
+| `@themusebook/agent-kit-perps` | Perps venue descriptors (Imperial grounded; Phoenix-direct market-data only), pre-trade risk gate, order descriptors, JEV decision engine (fail-closed, paper default) |
 | `@themusebook/agent-kit-x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
 
 ## Agents in this kit
@@ -99,22 +118,30 @@ payments and operations). See [docs/two-wallets.md](docs/two-wallets.md).
 
 v0.2 adds token-launch **builders** (Genesis payloads + the permanent
 token binding) — submission always runs through the caller's
-signer/adapter, and the kit still never holds keys. pump.fun and
-stonk.fun execution stay outside the kit (venue templates only). Still
-out of scope: any new onchain program, a published CLI (the experimental
-starter-kit CLI below runs from this repo only), browser wallet adapters
-beyond SIWS message signing, and any custody of user keys. See
-[docs/migration-v0.2.0.md](docs/migration-v0.2.0.md).
+signer/adapter, and the kit still never holds keys. **v0.3** deepens
+the venues: pump.fun gains finance-style flow descriptors, stonk.fun
+gains a real API client package (superseding the v0.2 note that its
+launch flow was disabled — `/stats` decides the live path at
+runtime), and perps/decision agents land as descriptors + a risk
+gate + a fail-closed decision engine. Still out of scope: any new
+onchain program, a published CLI (the experimental starter-kit CLI
+below runs from this repo only), browser wallet adapters beyond SIWS
+message signing, native Phoenix order placement (not grounded in any
+inspected source), and any custody of user keys. See
+[docs/migration-v0.3.0.md](docs/migration-v0.3.0.md).
 
 ## Docs
 
 - [docs/architecture.md](docs/architecture.md) — the stack, layer by layer
 - [docs/two-wallets.md](docs/two-wallets.md) — the anti-conflation guide
 - [docs/security.md](docs/security.md) — policy denials are final; proposals are not authority
-- [docs/finance.md](docs/finance.md) — Genesis launches, creator-fee routing, the permanent token binding
+- [docs/finance.md](docs/finance.md) — Genesis launches, creator-fee routing, the permanent token binding, pump.fun flow descriptors
 - [docs/commerce.md](docs/commerce.md) — the three x402 payment modes, Mech delegation, token storage
-- [docs/templates.md](docs/templates.md) — the five venue presets and their grounding
+- [docs/templates.md](docs/templates.md) — the seven venue presets and their grounding
+- [docs/stonk.md](docs/stonk.md) — the Stonkfun client: two launch paths, the two silent failures, fee claims, rate limits
+- [docs/perps.md](docs/perps.md) — perps venues (Imperial grounded, Phoenix-direct reads-only), the risk gate, the JEV decision engine
 - [docs/companions.md](docs/companions.md) — how the kit fits themusebook/agents, themusebook/skills, and the live /agents + /skills surfaces
+- [docs/migration-v0.3.0.md](docs/migration-v0.3.0.md) — what v0.3 added, incl. the stonk launch-path correction vs v0.2
 - [docs/migration-v0.2.0.md](docs/migration-v0.2.0.md) — what v0.2 added and the (small) breaking surface
 
 ## Starter kit: CLI, agents and services

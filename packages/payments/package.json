@@ -1,6 +1,6 @@
 {
   "name": "@themusebook/agent-kit-payments",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Musebook Agent Kit — x402 pay + receipt verify, atomic-batch builder, x402m mailbox.",
   "license": "MIT",
   "type": "module",

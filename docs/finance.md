@@ -71,11 +71,37 @@ Until a token is bound, DAS reads show **no `agent_token`** for the
 asset — `identity.resolve()` returns `agentToken: null`, which is a
 normal state, not an error.
 
+## pump.fun flows (v0.3) — descriptors for the fun-block agent API
+
+`finance/pump.ts` deepens the `pump-agent` preset from metadata into
+flow descriptors for `POST https://fun-block.pump.fun/agents/...`,
+grounded in the owner's pump skill family. Same doctrine as Genesis:
+builders validate and return a `PumpRequestDescriptor`
+(`{ kind, endpoint, body, transactionEncoding: "base64",
+requiresUserSignature: true, warnings }`); `createPumpHttpAdapter()`
+POSTs only when the caller invokes it, and the API's answer is an
+**unsigned transaction the user co-signs** — the agent never signs
+for the user.
+
+| Builder | Endpoint | Notes |
+|---|---|---|
+| `buildCreateCoinRequest` | `/agents/create-coin` | metadata + optional initial buy / cashback / mayhem / tokenized-agent & buyback bps |
+| `buildSwapRequest` | `/agents/swap` | **`slippageBps` REQUIRED** (no default exists to invent); `marketState` (`bonding-curve` \| `graduated-amm`) must be checked first — the routes differ; exactly one of `amountSol`/`amountTokens` |
+| `buildCollectFeesRequest` | `/agents/collect-fees` | creator fees or cashback; inspect the fee destination first |
+| `buildFeeSharingConfigRequest` | `/agents/sharing-config` | recipient shares are bps and **must sum to exactly 10000** |
+| `buildAgentPaymentInvoice` | (@pump-fun/agent-payments-sdk) | invoice descriptor anchored by the **Invoice ID PDA** (duplicate-safe); server MUST verify payment **on-chain before delivering** |
+
+Errors: `PumpValidationError` (`.field`) / `PumpApiNetworkError` /
+`PumpApiError`, with `is*` guards. Honesty note: the field contract
+follows the skills' documented API surface — the fun-block host was
+verified live (2026-09-19) but the full POST flows were not
+live-tested end-to-end; dry-run first and verify the returned
+transaction before signing.
+
 ## What finance does NOT do
 
 - No bonding-curve trading, sniping, or market making — launch +
-  binding only.
-- No pump.fun / stonk.fun launch execution — those venues are
-  **templates** (see templates.md), executed by the operator's own
-  venue tooling.
+  binding, plus the pump flow descriptors above.
+- No stonk.fun surface — that venue has its own real client package
+  now (`@themusebook/agent-kit-stonk`, docs/stonk.md).
 - No custody: payloads are data; signing belongs to the caller.
