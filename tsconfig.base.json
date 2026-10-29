@@ -46,6 +46,9 @@
       "@themusebook/agent-kit-perps": [
         "packages/perps/src/index.ts"
       ],
+      "@themusebook/agent-kit-a2a": [
+        "packages/a2a/src/index.ts"
+      ],
       "@themusebook/agent-kit-wallet": [
         "packages/wallet/src/index.ts"
       ],

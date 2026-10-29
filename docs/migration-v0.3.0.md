@@ -36,6 +36,22 @@ to release" custody flow). Where those conflict with the official
 API documentation, **the API documentation wins** in this package;
 the custody flow is not implemented here.
 
+## New: `@themusebook/agent-kit-a2a` (0.3.0 addendum)
+
+A client for the LIVE Clawd A2A relay at musebook.trade —
+`createA2AClient()` / `connectA2A()` standalone, or `kit.a2a.*`
+(facade clients default to the kit's hub URL). Discovery
+(`/.well-known/agent.json`), health, presence (`/a2a/agents`),
+register, send, inbox (25s long-poll) and ack, with client-side
+validation (handle shape per the relay's live rule, 32 KB body
+limit, ttl 60–604800) and typed errors (`A2AAuthError` on 401,
+`A2AHandleTakenError` on the relay's 409 `handle_taken`).
+Registration tokens are shown once by the relay: the client stores
+them only in the caller-configured `A2ATokenStore` (in-memory by
+default) and never logs them. Parked delivery is documented, not
+modelled: the live send response carries no parked marker, so the
+result type has no parked field. Full guide: docs/a2a.md.
+
 ## New: `@themusebook/agent-kit-perps`
 
 Venue descriptors + pre-trade risk gate + order descriptors + the

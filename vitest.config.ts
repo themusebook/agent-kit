@@ -20,6 +20,7 @@ export default defineConfig({
       "@themusebook/agent-kit-templates": src("./packages/templates/src/index.ts"),
       "@themusebook/agent-kit-stonk": src("./packages/stonk/src/index.ts"),
       "@themusebook/agent-kit-perps": src("./packages/perps/src/index.ts"),
+      "@themusebook/agent-kit-a2a": src("./packages/a2a/src/index.ts"),
       "@themusebook/agent-kit-x402-metaplex": src("./packages/x402-metaplex/src/index.ts"),
     },
   },
