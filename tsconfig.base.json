@@ -37,6 +37,12 @@
       "@themusebook/agent-kit-templates": [
         "packages/templates/src/index.ts"
       ],
+      "@themusebook/agent-kit-stonk": [
+        "packages/stonk/src/index.ts"
+      ],
+      "@themusebook/agent-kit-perps": [
+        "packages/perps/src/index.ts"
+      ],
       "@themusebook/agent-kit-wallet": [
         "packages/wallet/src/index.ts"
       ],

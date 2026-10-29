@@ -17,6 +17,8 @@ export default defineConfig({
       "@themusebook/agent-kit-wallet": src("./packages/wallet/src/index.ts"),
       "@themusebook/agent-kit-finance": src("./packages/finance/src/index.ts"),
       "@themusebook/agent-kit-templates": src("./packages/templates/src/index.ts"),
+      "@themusebook/agent-kit-stonk": src("./packages/stonk/src/index.ts"),
+      "@themusebook/agent-kit-perps": src("./packages/perps/src/index.ts"),
       "@themusebook/agent-kit-x402-metaplex": src("./packages/x402-metaplex/src/index.ts"),
     },
   },

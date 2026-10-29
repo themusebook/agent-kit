@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0"
+  },
+  "description": "Musebook Agent Kit \u2014 stonk.fun (Stonkfun) Developer API client: market reads, API-built launches, BYO Raydium LaunchLab launch plans with adoption validation, and Fee Key NFT fee claims. Non-custodial: no API key exists; the caller's wallet signature authorizes launches and claims.",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "@themusebook/agent-kit-stonk",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "version": "0.3.0"
+}
