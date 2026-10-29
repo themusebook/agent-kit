@@ -1,0 +1,45 @@
+{{- if .Values.supervisor.enabled }}
+{{- $c := dict "root" . "component" "supervisor" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ak.component" $c }}
+  labels: {{- include "ak.labels" $c | nindent 4 }}
+  annotations:
+    agent-kit.musebook.trade/warning: "mounts the node Docker socket (root-equivalent on the node)"
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "ak.selector" $c | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "ak.labels" $c | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: supervisor
+          image: {{ include "ak.image" (dict "root" . "name" .Values.supervisor.image) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ name: http, containerPort: {{ .Values.supervisor.port }} }]
+          env:
+            - { name: PORT, value: {{ .Values.supervisor.port | quote }} }
+            - { name: COMPUTER_IMAGE, value: {{ .Values.supervisor.computerImage | quote }} }
+            - { name: COMPUTER_NAMESPACE, value: {{ .Release.Namespace | quote }} }
+            {{- include "ak.secretEnv" (dict "env" "SUPERVISOR_TOKEN" "ref" .Values.supervisor.token) | nindent 12 }}
+          readinessProbe: { httpGet: { path: /health, port: http } }
+          volumeMounts: [{ name: docker, mountPath: /var/run/docker.sock }]
+          resources: {{ toYaml .Values.supervisor.resources | nindent 12 }}
+      volumes:
+        - name: docker
+          hostPath: { path: {{ .Values.supervisor.dockerSocket | quote }}, type: Socket }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ak.component" $c }}
+spec:
+  selector: {{- include "ak.selector" $c | nindent 4 }}
+  ports: [{ name: http, port: {{ .Values.supervisor.port }}, targetPort: http }]
+{{- end }}

@@ -1,0 +1,8 @@
+database: { urlSecret: { name: agent-kit-db, key: DATABASE_URL } }
+secrets:
+  openbotServerToken: { name: agent-kit, key: OPENBOT_SERVER_TOKEN }
+  solanaRpcUrl: { name: agent-kit, key: SOLANA_RPC_URL }
+server: { replicas: 2 }
+supervisor: { enabled: true }
+spire: { configMap: true }
+ingress: { enabled: true, className: nginx, host: agents.example.com }

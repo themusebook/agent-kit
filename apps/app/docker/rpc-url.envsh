@@ -1,0 +1,9 @@
+#!/bin/sh
+# nginx replaces the matched /rpc only when proxy_pass carries a path, so make sure
+# SOLANA_RPC_URL has one ("https://host" -> "https://host/"). Query strings are kept.
+case "$SOLANA_RPC_URL" in
+  *://*/*) ;;
+  *\?*) SOLANA_RPC_URL="${SOLANA_RPC_URL%%\?*}/?${SOLANA_RPC_URL#*\?}" ;;
+  *) SOLANA_RPC_URL="${SOLANA_RPC_URL:-https://api.devnet.solana.com}/" ;;
+esac
+export SOLANA_RPC_URL

@@ -66,6 +66,16 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with: { version: v3.16.2 }
+      - run: helm lint charts/agent-kit
+      - run: helm lint charts/agent-kit -f charts/agent-kit/ci/full-values.yaml
+      - run: charts/agent-kit/tests/chart-test.sh
+
   desktop:
     runs-on: ubuntu-latest
     defaults:

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: agent-kit
+description: Run the musebook agent-kit (server, worker, dashboard, optional supervisor and SPIRE config) on Kubernetes
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/themusebook/agent-kit
+sources:
+  - https://github.com/themusebook/agent-kit
+keywords: [musebook, x402m, solana, agents]

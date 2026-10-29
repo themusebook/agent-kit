@@ -1,0 +1,42 @@
+{{- if .Values.server.enabled }}
+{{- $c := dict "root" . "component" "server" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ak.component" $c }}
+  labels: {{- include "ak.labels" $c | nindent 4 }}
+spec:
+  replicas: {{ .Values.server.replicas }}
+  selector:
+    matchLabels: {{- include "ak.selector" $c | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "ak.labels" $c | nindent 8 }}
+    spec:
+      {{- include "ak.pod" $c | nindent 6 }}
+      containers:
+        - name: server
+          image: {{ include "ak.image" (dict "root" . "name" .Values.server.image) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: {{ toYaml .Values.securityContext | nindent 12 }}
+          ports: [{ name: http, containerPort: {{ .Values.server.port }} }]
+          env:
+            - { name: PORT, value: {{ .Values.server.port | quote }} }
+            - { name: MUSEBOOK_ORIGIN, value: {{ .Values.musebookOrigin | quote }} }
+            - { name: OPENBOT_SERVER_URL, value: {{ .Values.openbotServerUrl | quote }} }
+            {{- include "ak.secretEnv" (dict "env" "WORKER_SHARED_SECRET" "ref" .Values.secrets.workerSharedSecret) | nindent 12 }}
+            {{- include "ak.secretEnv" (dict "env" "OPENBOT_SERVER_TOKEN" "ref" .Values.secrets.openbotServerToken) | nindent 12 }}
+            {{- include "ak.secretEnv" (dict "env" "DATABASE_URL" "ref" .Values.database.urlSecret) | nindent 12 }}
+          readinessProbe: { httpGet: { path: /health, port: http } }
+          livenessProbe: { httpGet: { path: /health, port: http }, periodSeconds: 20 }
+          resources: {{ toYaml .Values.server.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ak.component" $c }}
+  labels: {{- include "ak.labels" $c | nindent 4 }}
+spec:
+  selector: {{- include "ak.selector" $c | nindent 4 }}
+  ports: [{ name: http, port: {{ .Values.server.port }}, targetPort: http }]
+{{- end }}

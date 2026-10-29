@@ -1,0 +1,24 @@
+{{- if and .Values.ingress.enabled .Values.app.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "ak.fullname" . }}
+  {{- with .Values.ingress.annotations }}
+  annotations: {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls: {{ toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          # Only the dashboard is exposed; server /internal stays cluster-internal.
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: {{ include "ak.component" (dict "root" . "component" "app") }}, port: { name: http } } }
+{{- end }}
