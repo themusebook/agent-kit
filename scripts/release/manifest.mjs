@@ -27,7 +27,7 @@ for (const pkg of PUBLISHABLE) {
   if (!existsSync(`${pkg.dir}/tsconfig.build.json`) && !pkg.bin) {
     writeFileSync(`${pkg.dir}/tsconfig.build.json`, JSON.stringify({ extends: pkg.buildBase ?? "../../tsconfig.build.json", compilerOptions: { rootDir: "src", outDir: "dist" }, include: ["src"] }, null, 2) + "\n");
   }
-  if (!pkg.bin) { p.scripts = { ...p.scripts, build: "tsc -p tsconfig.build.json", prepack: "node ../../scripts/release/check-dist.mjs" }; }
+  if (!pkg.bin) { p.scripts = { ...p.scripts, build: "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs", prepack: "node ../../scripts/release/check-dist.mjs" }; }
   writeFileSync(file, JSON.stringify(p, null, 2) + "\n");
   console.log(`${p.name}@${p.version}`);
 }

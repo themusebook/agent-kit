@@ -1,6 +1,6 @@
 {
   "name": "@musebook/identity",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Musebook Agent Kit — EIP-8004 identity: registration docs, mint flow, resolve/verify, Asset Signer PDA.",
   "license": "MIT",
   "type": "module",
@@ -37,7 +37,7 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
     "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

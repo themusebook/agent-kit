@@ -1,6 +1,6 @@
 {
   "name": "@musebook/agent-kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Musebook Agent Kit — batteries-included client facade.",
   "license": "MIT",
   "type": "module",
@@ -45,7 +45,7 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
     "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

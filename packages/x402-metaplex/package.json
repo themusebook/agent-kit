@@ -1,6 +1,6 @@
 {
   "name": "@musebook/x402-metaplex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Musebook Agent Kit — Metaplex x402 agents: paid inference, images, Solana RPC/DAS via @metaplex-foundation/x402 (standard wallet, Core asset, delegated), behind a spend guard that defaults to discovery-only.",
   "license": "MIT",
   "type": "module",
@@ -58,7 +58,7 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
     "prepack": "node ../../scripts/release/check-dist.mjs"
   }
 }

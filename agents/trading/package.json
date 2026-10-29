@@ -5,7 +5,7 @@
   "scripts": {
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
     "prepack": "node ../../scripts/release/check-dist.mjs"
   },
   "dependencies": {
@@ -24,7 +24,7 @@
     "@types/node": "22",
     "typescript": "5"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/themusebook/agent-kit.git",

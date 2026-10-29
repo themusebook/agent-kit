@@ -9,7 +9,7 @@ import { readIdentity, prepareMint, simulate } from './identity.mjs';
 import { quote, payWithOws } from './pay.mjs';
 import { scaffold } from './deploy.mjs';
 
-export const HELP = `musebook — agent kit CLI (runs from this repo; not published to npm)
+export const HELP = `musebook — agent kit CLI (npm: @musebook/cli)
 
   discover [--query q]                        x402m directory + musebook.trade agents
   register --wallet W --slug S --name N       print SIWS challenge to sign in your wallet

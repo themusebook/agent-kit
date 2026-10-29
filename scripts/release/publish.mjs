@@ -16,6 +16,7 @@ for (const pkg of PUBLISHABLE) {
   const { name, version } = JSON.parse(readFileSync(`${pkg.dir}/package.json`, "utf8"));
   const usesPnpm = pkg.dir.startsWith("packages/") && !pkg.bin;
   if (!pkg.bin) run(pkg.dir === "agents/trading" ? "node_modules/.bin/tsc" : "../../node_modules/.bin/tsc", ["-p", "tsconfig.build.json"], pkg.dir);
+  if (!pkg.bin) run("node", ["../../scripts/release/fix-esm.mjs"], pkg.dir);
   if (!publish) { run("npm", ["pack", "--dry-run"], pkg.dir); continue; }
   if (published(name, version)) { console.log(`skip ${name}@${version}: already on npm`); continue; }
   // pnpm rewrites workspace:* ranges to real versions at publish time; npm does not.
