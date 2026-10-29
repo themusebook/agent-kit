@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import { deriveAssetSignerPda } from "./assetSigner";
+import { deriveAgentIdentityPda, deriveAssetSignerPda } from "./assetSigner";
 import {
   ipfsToHttp,
   validateRegistrationDocument,
@@ -25,7 +25,28 @@ export interface DasAsset {
   };
   plugins?: Record<string, unknown>;
   grouping?: Array<{ group_key: string; group_value: string }>;
+  /**
+   * DAS agent fields (snake_case in getAsset/searchAssets responses):
+   * `is_agent` is THE distinguisher — `asset_signer` is returned for ALL
+   * Core assets (it is a pure PDA derivation), and `agent_token` is absent
+   * until a token has been permanently bound with setAgentTokenV1.
+   */
+  is_agent?: boolean;
+  asset_signer?: string;
+  agent_token?: string;
   [key: string]: unknown;
+}
+
+/**
+ * Agent Identity lifecycle hooks (mirrors fetchAsset's
+ * agentIdentities[0].lifecycleChecks { transfer, update, execute }):
+ * a registered identity attaches Listen hooks for all three. `null` when
+ * the indexer did not surface the checks — absence is not a failure.
+ */
+export interface AgentLifecycleChecks {
+  transfer: boolean;
+  update: boolean;
+  execute: boolean;
 }
 
 export interface ResolvedAgent {
@@ -39,6 +60,10 @@ export interface ResolvedAgent {
   registrationUri: string | null;
   /** The keyless identity treasury (always derivable, agent or not). */
   assetSigner: string;
+  /** Agent Identity PDA (always derivable, agent or not). */
+  agentIdentity: string;
+  /** Lifecycle hooks from the identity plugin, when the indexer exposes them. */
+  lifecycleChecks: AgentLifecycleChecks | null;
   /** Canonical bound token mint, when the asset has an agent_token binding. */
   agentToken: string | null;
   raw: DasAsset | null;
@@ -72,6 +97,46 @@ function extractRegistrationUri(asset: DasAsset): string | null {
   return null;
 }
 
+/** Find the Agent Identity plugin's data object in a DAS asset, defensively. */
+function agentPluginData(asset: DasAsset): Record<string, unknown> | null {
+  const plugins = asset.plugins ?? {};
+  for (const key of Object.keys(plugins)) {
+    if (!/agent/i.test(key)) continue;
+    const plugin = plugins[key] as Record<string, unknown> | undefined;
+    const data = (plugin?.data ?? plugin) as Record<string, unknown> | undefined;
+    if (data) return data;
+  }
+  return null;
+}
+
+function hookActive(v: unknown): boolean {
+  if (v === null || v === undefined || v === false) return false;
+  if (typeof v === "object") {
+    const kind = (v as { __kind?: string }).__kind;
+    if (kind && kind !== "Listen") return false;
+  }
+  if (typeof v === "string" && /^(none|reject)$/i.test(v)) return false;
+  return true;
+}
+
+/**
+ * Lifecycle checks from the Agent Identity plugin data
+ * (lifecycle_checks / lifecycleChecks { transfer, update, execute }).
+ * Returns null when the indexer does not expose them.
+ */
+function extractLifecycleChecks(asset: DasAsset): AgentLifecycleChecks | null {
+  const data = agentPluginData(asset);
+  const checks = (data?.lifecycle_checks ?? data?.lifecycleChecks) as
+    | Record<string, unknown>
+    | undefined;
+  if (!checks || typeof checks !== "object") return null;
+  return {
+    transfer: hookActive(checks.transfer),
+    update: hookActive(checks.update),
+    execute: hookActive(checks.execute),
+  };
+}
+
 function extractAgentToken(asset: DasAsset): string | null {
   const plugins = asset.plugins ?? {};
   for (const key of Object.keys(plugins)) {
@@ -95,6 +160,7 @@ export async function resolveAgent(
 ): Promise<ResolvedAgent> {
   const assetAddress = typeof asset === "string" ? asset : asset.toBase58();
   const assetSigner = deriveAssetSignerPda(assetAddress).toBase58();
+  const agentIdentity = deriveAgentIdentityPda(assetAddress).toBase58();
   let raw: DasAsset | null = null;
   try {
     raw = await rpcCall<DasAsset>(config.rpc, "getAsset", { id: assetAddress });
@@ -104,21 +170,80 @@ export async function resolveAgent(
   if (!raw) {
     return {
       assetAddress, exists: false, isAgent: false, owner: null, name: null,
-      registrationUri: null, assetSigner, agentToken: null, raw: null,
+      registrationUri: null, assetSigner, agentIdentity, lifecycleChecks: null,
+      agentToken: null, raw: null,
     };
   }
   const registrationUri = extractRegistrationUri(raw);
   return {
     assetAddress,
     exists: true,
-    isAgent: registrationUri !== null,
+    // DAS is_agent is authoritative when present; the registration URI in
+    // the identity plugin is the fallback signal. asset_signer proves
+    // nothing — DAS returns it for every Core asset.
+    isAgent: raw.is_agent ?? registrationUri !== null,
     owner: raw.ownership?.owner ?? null,
     name: raw.content?.metadata?.name ?? null,
     registrationUri,
     assetSigner,
-    agentToken: extractAgentToken(raw),
+    agentIdentity,
+    lifecycleChecks: extractLifecycleChecks(raw),
+    agentToken: raw.agent_token ?? extractAgentToken(raw),
     raw,
   };
+}
+
+/**
+ * safeFetch semantics for the identity read: resolves the asset and
+ * returns its agent record, or **null when the asset is missing or is not
+ * a registered agent** — never throws on a missing identity. (An RPC
+ * transport failure still surfaces as null here only when getAsset itself
+ * reports nothing; use resolveAgent when you need exists/isAgent detail.)
+ */
+export async function fetchAgentIdentity(
+  config: IdentityConfig,
+  asset: PublicKey | string,
+): Promise<ResolvedAgent | null> {
+  const resolved = await resolveAgent(config, asset);
+  if (!resolved.exists || !resolved.isAgent) return null;
+  return resolved;
+}
+
+/**
+ * DAS `searchAssets` over Core assets with the agent filters. Request
+ * params are camelCase (isAgent, agentToken, assetSigner) even though the
+ * response fields come back snake_case (is_agent, agent_token,
+ * asset_signer).
+ */
+export interface SearchAgentAssetsParams {
+  /** Default true — search registered agents only. */
+  isAgent?: boolean;
+  agentToken?: string;
+  assetSigner?: string;
+  owner?: string;
+  limit?: number;
+  page?: number;
+}
+
+export async function searchAgentAssets(
+  config: IdentityConfig,
+  params: SearchAgentAssetsParams = {},
+): Promise<DasAsset[]> {
+  const result = await rpcCall<{ items?: DasAsset[] } | DasAsset[]>(
+    config.rpc,
+    "searchAssets",
+    {
+      interface: "MplCoreAsset",
+      isAgent: params.isAgent ?? true,
+      ...(params.agentToken ? { agentToken: params.agentToken } : {}),
+      ...(params.assetSigner ? { assetSigner: params.assetSigner } : {}),
+      ...(params.owner ? { owner: params.owner } : {}),
+      limit: params.limit ?? 100,
+      page: params.page ?? 1,
+    },
+  );
+  if (Array.isArray(result)) return result;
+  return result?.items ?? [];
 }
 
 /**
@@ -173,9 +298,19 @@ export function resolveFromDirectoryRecord(record: DirectoryRecordLike): Resolve
     name: record.name ?? null,
     registrationUri,
     assetSigner: derived,
+    agentIdentity: assetAddress ? safeDeriveIdentity(assetAddress) : "",
+    lifecycleChecks: null,
     agentToken: record.agentToken ?? record.agent_token ?? null,
     raw: null,
   };
+}
+
+function safeDeriveIdentity(assetAddress: string): string {
+  try {
+    return deriveAgentIdentityPda(assetAddress).toBase58();
+  } catch {
+    return "";
+  }
 }
 
 /** Problems with a directory record's own claims (empty = self-consistent). */
@@ -216,6 +351,17 @@ export async function verifyAgent(
   const problems: string[] = [];
   if (!resolved.exists) problems.push("asset not found via DAS");
   if (!resolved.isAgent) problems.push("asset has no Agent Identity registration URI");
+  // A registered identity attaches lifecycle hooks for transfer, update
+  // and execute (fetchAsset's agentIdentities[0].lifecycleChecks). Empty
+  // agentIdentities upstream == not registered; here, when the indexer
+  // surfaces the checks, every hook must be active.
+  if (resolved.isAgent && resolved.lifecycleChecks) {
+    for (const hook of ["transfer", "update", "execute"] as const) {
+      if (!resolved.lifecycleChecks[hook]) {
+        problems.push(`agent identity lifecycle hook not active: ${hook}`);
+      }
+    }
+  }
   if (resolved.registrationUri) {
     try {
       const { problems: docProblems, document } = await fetchRegistrationDocument(resolved.registrationUri);
