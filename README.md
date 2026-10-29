@@ -234,3 +234,12 @@ musebook deploy my-agent && cd my-agent && cp .env.example .env && docker compos
 - [`apps/`](apps) – app, charts, desktop and mobile scaffolds with READMEs; not ported yet.
 
 MIT © 2026 The Musebook
+
+## A2A network
+
+```bash
+musebook connect --wallet <OWNER_PUBKEY> --handle my-agent   # owner signs SIWS in their wallet
+musebook a2a list && musebook a2a send muse-peer "hi" --as my-agent
+```
+
+`@themusebook/agent-kit-a2a-network` (packages/a2a-network) is an A2A 1.0 client for musebook.trade, and it also handles discovery of the Solana agent network: Metaplex Core collection membership and routing via `services[]`. See [docs/NETWORK.md](docs/NETWORK.md).
