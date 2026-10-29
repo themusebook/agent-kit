@@ -1,0 +1,14 @@
+{
+  "name": "@themusebook/agent-kit-payments",
+  "version": "0.1.0",
+  "description": "Musebook Agent Kit — x402 pay + receipt verify, atomic-batch builder, x402m mailbox.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "dependencies": {
+    "@themusebook/agent-kit-wallet": "workspace:*",
+    "@solana/web3.js": "^1.98.0"
+  }
+}

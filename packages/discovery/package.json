@@ -1,0 +1,18 @@
+{
+  "name": "@themusebook/agent-kit-discovery",
+  "version": "0.1.0",
+  "description": "Musebook Agent Kit \u2014 directory/registry search, provider inspection, x402m discovery + contentProfiles.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@themusebook/agent-kit-auth": "workspace:*"
+  }
+}

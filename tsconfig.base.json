@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@themusebook/agent-kit": ["packages/client/src/index.ts"],
+      "@themusebook/agent-kit-identity": ["packages/identity/src/index.ts"],
+      "@themusebook/agent-kit-auth": ["packages/auth/src/index.ts"],
+      "@themusebook/agent-kit-discovery": ["packages/discovery/src/index.ts"],
+      "@themusebook/agent-kit-payments": ["packages/payments/src/index.ts"],
+      "@themusebook/agent-kit-wallet": ["packages/wallet/src/index.ts"]
+    }
+  }
+}

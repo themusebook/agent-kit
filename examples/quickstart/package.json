@@ -1,0 +1,19 @@
+{
+  "name": "@themusebook/example-quickstart",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The v0.1 milestone flow on devnet: register \u2192 mint \u2192 resolve \u2192 discover \u2192 auth \u2192 pay.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "tsx main.ts"
+  },
+  "dependencies": {
+    "@themusebook/agent-kit": "workspace:*",
+    "@solana/web3.js": "^1.98.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}
