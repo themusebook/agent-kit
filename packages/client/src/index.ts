@@ -72,14 +72,14 @@ import {
 import {
   PERPS_VENUES,
   buildActionSpace,
-  buildGridPlan,
-  buildImperialPlaceOrder,
-  buildTakeProfitStopLossPlan,
-  buildTouchOrder,
-  buildTwammOrder,
-  evaluatePreTradeRisk,
+  buildImperialBatchPlan,
+  buildImperialOrder,
+  buildPerpsTradePreview,
+  buildPreflightReport,
+  buildTwammAutomationPlan,
+  clampImperialSize,
   getPerpsVenue,
-  sizePerpsOrder,
+  resolveTradingMode,
   type PerpsVenueDescriptor,
 } from "@musebook/perps";
 import {
@@ -163,13 +163,13 @@ export interface AgentKit {
   perps: {
     venues: readonly PerpsVenueDescriptor[];
     venue: typeof getPerpsVenue;
-    evaluatePreTradeRisk: typeof evaluatePreTradeRisk;
-    sizeOrder: typeof sizePerpsOrder;
-    buildPlaceOrder: typeof buildImperialPlaceOrder;
-    buildTakeProfitStopLossPlan: typeof buildTakeProfitStopLossPlan;
-    buildTwammOrder: typeof buildTwammOrder;
-    buildGridPlan: typeof buildGridPlan;
-    buildTouchOrder: typeof buildTouchOrder;
+    buildPreflightReport: typeof buildPreflightReport;
+    resolveTradingMode: typeof resolveTradingMode;
+    clampImperialSize: typeof clampImperialSize;
+    buildImperialOrder: typeof buildImperialOrder;
+    buildImperialBatchPlan: typeof buildImperialBatchPlan;
+    buildPerpsTradePreview: typeof buildPerpsTradePreview;
+    buildTwammAutomationPlan: typeof buildTwammAutomationPlan;
     buildActionSpace: typeof buildActionSpace;
   };
   connection(): Connection;
@@ -305,13 +305,13 @@ export function createAgentKit(
     perps: {
       venues: PERPS_VENUES,
       venue: getPerpsVenue,
-      evaluatePreTradeRisk,
-      sizeOrder: sizePerpsOrder,
-      buildPlaceOrder: buildImperialPlaceOrder,
-      buildTakeProfitStopLossPlan,
-      buildTwammOrder,
-      buildGridPlan,
-      buildTouchOrder,
+      buildPreflightReport,
+      resolveTradingMode,
+      clampImperialSize,
+      buildImperialOrder,
+      buildImperialBatchPlan,
+      buildPerpsTradePreview,
+      buildTwammAutomationPlan,
       buildActionSpace,
     },
   };

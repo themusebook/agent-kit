@@ -81,9 +81,12 @@ const fees = await kit.stonk.getTokenFees(mint); // check fees.scope before loop
 // pump.fun flow descriptors (finance): unsigned tx back, user co-signs
 const swap = buildSwapRequest({ mint, side: "buy", amountSol: 0.1, slippageBps: 250, marketState: "bonding-curve" });
 
-// Perps: risk gate first (throws on refusal), then a caller-signed descriptor
-kit.perps.evaluatePreTradeRisk({ policy, bookNonEmpty: true, notionalUsd: 200, leverage: 2, currentExposureUsd: 0 });
-const order = kit.perps.buildPlaceOrder({ pairId: "SOL-PERP", side: "bid", sizeInBaseLots: 10, limitPriceUsd: 150 });
+// Perps: preflight first (a blocked report = no trade), then a caller-handled descriptor
+const report = kit.perps.buildPreflightReport(
+  { limits: DEFAULT_PERPS_RISK_LIMITS, mode: "observe", rpcUrl, wallet },
+  { symbol: "SOL", notionalUsd: 200, leverage: 2, execution: "paper" },
+);
+const order = kit.perps.buildImperialOrder({ wallet, action: "increase", side: "long", sizeUsd: 100, symbol: "SOL" });
 ```
 
 ## Packages
@@ -99,7 +102,7 @@ const order = kit.perps.buildPlaceOrder({ pairId: "SOL-PERP", side: "bid", sizeI
 | `@musebook/finance` | Genesis agent-token launch builders + the permanent setAgentTokenV1 binding (acknowledge-gated) + pump.fun flow descriptors (create-coin / swap / fees / invoices) |
 | `@musebook/templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent, perps-agent, decision-agent |
 | `@musebook/stonk` | Real Stonkfun Developer API client: reads (v1+v2), API-built launches, BYO LaunchLab planning + adoption validation, Fee Key NFT claims. No API key — caller signs |
-| `@musebook/perps` | Perps venue descriptors (Imperial grounded; Phoenix-direct market-data only), pre-trade risk gate, order descriptors, JEV decision engine (fail-closed, paper default) |
+| `@musebook/perps` | Perps venue descriptors (Phoenix via Rise/Vulcan; Imperial multi-underwriter router), the repos' preflight risk report, Imperial order/batch descriptors, JEV decision engine (fail-closed, paper default) |
 | `@musebook/x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
 
 ## Agents in this kit

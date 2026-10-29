@@ -93,13 +93,15 @@ describe("stonk-agent v0.3 correction", () => {
 });
 
 describe("perps-agent + decision-agent grounding (v0.3)", () => {
-  it("perps-agent covers both venue variants and marks Phoenix-direct as market-data only", () => {
+  it("perps-agent covers the real topology: Phoenix venue, Imperial router, preflight model", () => {
     const perps = getAgentTemplate("perps-agent");
     const all = [perps.summary, ...perps.finance.notes, ...perps.requiredCaps].join("\n");
-    expect(all).toMatch(/IMPERIAL \(grounded\)/);
-    expect(all).toMatch(/PHOENIX-DIRECT \(market-data only\)/);
-    expect(all).toMatch(/slPrice/);
-    expect(all).toMatch(/evaluatePreTradeRisk/);
+    expect(all).toMatch(/multi-underwriter ROUTER/);
+    expect(all).toMatch(/buildPreflightReport/);
+    expect(all).toMatch(/placeBatch/);
+    expect(all).toMatch(/PERPS_SIM_ONLY/);
+    expect(all).toMatch(/CLAMPS oversize/);
+    expect(all).not.toMatch(/slPrice|money\.ts|agentgateway/);
     expect(perps.sources.join(" ")).toMatch(/clawd-agents-perps/);
     expect(perps.sources.join(" ")).toMatch(/clawd-perps-agent/);
   });

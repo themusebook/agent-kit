@@ -2,26 +2,43 @@ import { PerpsValidationError } from "./errors";
 
 /**
  * The decision-agent pattern, grounded in Solizardking/
- * jev-trader-solana. That repo has NO single canonical "judgment"
- * type — the pattern is a pipeline of seams, and this module mirrors
- * the seams, not invented names:
- * - `decision.ts` builds the action space DYNAMICALLY from the
- *   venues reachable right now: a closed discriminated union
- *   (TradeAction: imperial/jupiter buy/sell with signed amountUsd —
- *   sells are NEGATIVE — plus basket legs carrying poolId + weight
- *   in (0,1], Σ weights ≤ 1), populated each tick from LIVE venue
- *   state (ImperialState / JupiterState / DflowState / PumpState /
- *   StonkState). A venue whose state reads null/empty contributes
- *   no executable options. This module generalizes that as
- *   buildActionSpace(reachability) — the semantics (space from live
- *   reachability only) are the repo's; the reachability record is
- *   the kit's abstraction of its per-venue state reads.
- * - `book.ts` is a numbers-only guardrail over the model's text (the
- *   model can emit plausible-but-wrong numbers; the book recomputes).
- * - `jev.ts` is a single-shot approve/objection gate over a
- *   STRUCTURED proposal (TradeDecision-shaped), FAIL-CLOSED: an
- *   unparseable answer is an objection, never an approval.
- * - `trader.ts` runs the loop PAPER-ONLY and hard-refuses live mode.
+ * jev-trader-solana — with the attribution kept precise, because two
+ * different designs are easy to conflate:
+ *
+ * WHAT jev-trader-solana ACTUALLY DOES (file-verified):
+ * - A FIXED operation enum (`Operation`: BUY_SPOT | SELL_SPOT |
+ *   LONG_PERP | SHORT_PERP | HOLD | PAUSE) — no dynamic action
+ *   space. The judgment (TypeSafe System One / JEV, asked via a
+ *   subprocess bridge) picks the operation plus ONE slippage target
+ *   (s10/s25/s50 → 10/25/50 bps) from five choice heads. Size,
+ *   routing and risk are deterministic code, never the model's.
+ * - `validateChoice` is the portable contract: the answer's
+ *   probability keys must EXACTLY equal the id set, every
+ *   probability and the confidence finite in [0,1], the sum within
+ *   0.02 of 1, and the choice must be the argmax.
+ * - FAIL-CLOSED: any judgment failure returns a typed PAUSE
+ *   sentinel (`jevOk: false` + a reason from a small taxonomy:
+ *   jev-call-failed / invalid-operation-answer /
+ *   invalid-target-answer); a directional answer under the 0.9
+ *   confidence threshold is DOWNGRADED to HOLD; venue reachability
+ *   and staleness are enforced AFTER the judgment, in deterministic
+ *   code (blocked executions carry machine reasons like feeds-stale,
+ *   side-blocked, spread-exceeds-slippage, cap-full).
+ * - A separate regime judgment (choice bullish/bearish/chop +
+ *   momentum probability + 0–3 volatility score over CoinGecko +
+ *   book features) gates the cycle: paused regime = no decision
+ *   request at all.
+ * - NO cross-run memory: state is in-process positions/totals plus
+ *   an append-only events journal. Paper is the ONLY implemented
+ *   mode — there is no live path and no signing code; a set
+ *   PRIVATE_KEY changes only the startup banner.
+ *
+ * WHAT THIS MODULE ADDS (the kit's generalization, following the
+ * pattern jev-trader-solana's README attributes to its companion
+ * repo clawd-jev-trading-machine, and the kit brief): an action
+ * space BUILT from venue reachability, verdicts named
+ * decided/blocked, and memory recall as judge context. Those are
+ * kit designs — not claims about jev-trader-solana's internals.
  *
  * The invariants (the whole point of the pattern):
  * - FAIL-CLOSED: a malformed judgment, an action outside the space,
@@ -89,12 +106,17 @@ export function buildActionSpace(venues: VenueReachability[]): DecisionAction[] 
   return space;
 }
 
-/** Market-regime context (the jev stack classifies regime from CoinGecko data — as NARRATIVE for the judge, never as a sizing input). */
+/** Market-regime context, mirroring jev-trader-solana's regime gate output (a separate JEV judgment over CoinGecko + book features; a paused regime stops the cycle before any decision request). */
 export interface MarketRegime {
-  /** The repo's classifyRegime labels. */
-  label: "calm_uptrend" | "chop" | "panic" | "rebound" | "mania" | "unknown";
-  trend?: "up" | "down" | "range" | "unknown";
-  volatility?: "low" | "normal" | "high";
+  /** The repo's regime choice labels. */
+  choice: "bullish" | "bearish" | "chop" | "unknown";
+  confidence?: number;
+  /** P(move continues ~30s) from the momentum head, when present. */
+  momentumYes?: number | null;
+  /** Volatility score 0 (calm) – 3 (extreme); the repo pauses at >= 2.5 by default. */
+  volatilityScore?: number | null;
+  paused?: boolean;
+  allowed?: { buy: boolean; sell: boolean };
   source?: string;
 }
 

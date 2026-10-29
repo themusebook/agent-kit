@@ -1,177 +1,177 @@
-import { PerpsValidationError, RiskCheckError } from "./errors";
-
 /**
- * Pre-trade risk checks — the gate EVERY perps order descriptor must
- * pass before a caller signs anything. Two layers in the owner's
- * perps stacks, both mirrored here:
+ * Pre-trade risk — mirroring the source repos' actual gates
+ * (config.ts in BOTH clawd-agents-perps and clawd-perps-agent; the
+ * rules are the same in both, repo B adds two fallback warnings).
  *
- * - The FINANCIAL layer (clawd-perps-agent src/financial/money.ts,
- *   surfaced through financialClawd.evaluateRisk): hard constants
- *   MIN_NOTIONAL $5 · MAX_NOTIONAL $1,000 · MAX_LEVERAGE 2x ·
- *   MAX_TOTAL_EXPOSURE $5,000, an env kill switch (default off), and
- *   sizing that floors to lot multiples and refuses sub-lot results.
- * - The BOT layer (imperialBot.ts in both repos): named posture
- *   presets (PERPS_RISK_PRESETS below) with per-preset position /
- *   daily-loss / leverage / TP / SL defaults, a `checkRisk` that
- *   returns { allowed, reason }, dry-run DEFAULT true in both env
- *   layers, and a portfolio circuit breaker.
+ * The repos' model is a PREFLIGHT REPORT, not an exception:
+ * `buildPreflightReport` returns { ok, mode, blocking, warnings } —
+ * `ok` is false when `blocking` is non-empty, and a blocked order
+ * does not proceed. The kit keeps that shape deliberately (an
+ * earlier kit draft threw typed refusals with invented thresholds;
+ * corrected to the repos' own numbers and verdict-object style).
  *
- * Where the layers disagree, this package takes the STRICTER reading
- * and says so: the bot presets allow up to 5x default leverage while
- * the financial layer hard-caps at 2x — the kit's default policy uses
- * 2x. And where the repos return a verdict object, the kit THROWS
- * `RiskCheckError` (a deliberate strengthening: a refusal that can be
- * accidentally ignored is not a gate).
+ * Defaults (env-overridable in the repos): symbols SOL/ETH/BTC,
+ * maxNotionalUsd $250, maxLeverage 3x, maxSpreadBps 40, wallet
+ * required. Live execution is refuse-by-default: mode is "live"
+ * only when LIVE_TRADING && OPERATOR_CONFIRMED && !PERPS_SIM_ONLY,
+ * and simOnly defaults TRUE (so the default mode is observe).
+ *
+ * The Imperial layer has its OWN, stricter numbers (max size $100,
+ * slippage 50 bps) and a different failure style: it CLAMPS oversize
+ * orders instead of blocking. Both behaviors are surfaced here —
+ * the disagreement is real and callers should see it.
+ *
+ * What does NOT exist in either repo (do not invent it): any
+ * aggregate-exposure, margin-ratio or seat-state CHECK. Margin and
+ * risk fields appear on Phoenix trader views as display data only.
  */
 
-export interface PerpsRiskPolicy {
-  /** Hard stop: when true, every order is refused. Default true (fail-closed). */
-  killSwitch: boolean;
-  /** Minimum order notional in USD (source default 5). */
-  minNotionalUsd: number;
-  /** Maximum single-order notional in USD (source default 1000). */
+export type TradingMode = "observe" | "paper" | "live";
+
+export interface PerpsRiskLimits {
+  allowedSymbols: string[];
   maxNotionalUsd: number;
-  /** Maximum leverage (source default 2). */
   maxLeverage: number;
-  /** Maximum total open exposure in USD (source default 5000). */
-  maxTotalExposureUsd: number;
-  /** Maximum realized loss per day in USD before the circuit breaker trips (bot layer). Optional. */
-  maxDailyLossUsd?: number;
-  /** Default posture: dry-run unless the operator explicitly goes live (both repos default dryRun true). */
-  dryRun: boolean;
+  maxSpreadBps: number;
+  requireWallet: boolean;
 }
 
-/** The source repos' defaults. dryRun: true and killSwitch semantics as documented per field. */
-export const DEFAULT_PERPS_RISK_POLICY: PerpsRiskPolicy = {
-  killSwitch: false,
-  minNotionalUsd: 5,
-  maxNotionalUsd: 1000,
-  maxLeverage: 2,
-  maxTotalExposureUsd: 5000,
-  dryRun: true,
+/** The repos' defaults (PERPS_ALLOWED_SYMBOLS / PERPS_MAX_NOTIONAL_USD / PERPS_MAX_LEVERAGE / PERPS_MAX_SPREAD_BPS / PERPS_REQUIRE_WALLET). */
+export const DEFAULT_PERPS_RISK_LIMITS: PerpsRiskLimits = {
+  allowedSymbols: ["SOL", "ETH", "BTC"],
+  maxNotionalUsd: 250,
+  maxLeverage: 3,
+  maxSpreadBps: 40,
+  requireWallet: true,
 };
 
 /**
- * imperialBot's RISK_PRESETS, verbatim values (identical in both
- * repos). NOTE the disagreement with the financial layer: the bot's
- * aggressive preset defaults to 5x leverage where money.ts hard-caps
- * 2x. The kit's DEFAULT_PERPS_RISK_POLICY follows the stricter 2x;
- * adopting a preset's leverage is an explicit operator choice.
+ * Resolve the trading mode the way the repos do: live requires
+ * LIVE_TRADING=true AND OPERATOR_CONFIRMED=true AND sim-only off —
+ * and simOnly DEFAULTS TRUE, so absent explicit arming the mode is
+ * observe (or paper when the operator selected paper flows).
  */
-export const PERPS_RISK_PRESETS = {
-  conservative: { maxPositionUsd: 50, maxDailyLossUsd: 25, defaultLeverage: 2, stopLossPct: 2, takeProfitPct: 4 },
-  balanced: { maxPositionUsd: 200, maxDailyLossUsd: 100, defaultLeverage: 3, stopLossPct: 3, takeProfitPct: 6 },
-  aggressive: { maxPositionUsd: 500, maxDailyLossUsd: 250, defaultLeverage: 5, stopLossPct: 5, takeProfitPct: 10 },
-} as const;
+export function resolveTradingMode(input: {
+  liveTrading?: boolean;
+  operatorConfirmed?: boolean;
+  /** PERPS_SIM_ONLY — defaults true in the repos. */
+  simOnly?: boolean;
+  paper?: boolean;
+}): TradingMode {
+  const simOnly = input.simOnly ?? true;
+  if (input.liveTrading === true && input.operatorConfirmed === true && !simOnly) {
+    return "live";
+  }
+  return input.paper ? "paper" : "observe";
+}
 
-export type PerpsRiskPresetName = keyof typeof PERPS_RISK_PRESETS;
+export type PreflightExecution = "observe" | "paper" | "vulcan-live" | "rise-live";
 
-export interface PreTradeRiskInput {
-  policy: PerpsRiskPolicy;
-  /** Best bid/ask available? An empty book refuses (source: empty-book refusal in money.ts). */
-  bookNonEmpty: boolean;
-  /** The order's notional in USD (size × price). */
+export interface PreflightRequest {
+  symbol: string;
   notionalUsd: number;
-  /** Requested leverage for the order. */
-  leverage: number;
-  /** Current total open exposure in USD, before this order. */
-  currentExposureUsd: number;
-  /** Realized loss so far today in USD (positive number), when the policy carries a daily-loss cap. */
-  dailyLossUsd?: number;
+  leverage?: number;
+  expectedSpreadBps?: number;
+  execution: PreflightExecution;
 }
 
-export interface PreTradeRiskVerdict {
-  ok: true;
-  /** The order proceeds as a DRY RUN (plan only) when the policy says so. */
-  dryRun: boolean;
+export interface PreflightContext {
+  limits: PerpsRiskLimits;
+  mode: TradingMode;
+  /** RPC configured? (missing RPC is a blocking failure in the repos). */
+  rpcUrl?: string;
+  /** Wallet address configured? (pubkey only — the repos never hold a key here). */
+  wallet?: string;
 }
 
-/**
- * Evaluate the pre-trade gates. Returns a verdict or THROWS
- * RiskCheckError — callers must not catch-and-continue.
- */
-export function evaluatePreTradeRisk(input: PreTradeRiskInput): PreTradeRiskVerdict {
-  const { policy } = input;
-  if (policy.killSwitch) {
-    throw new RiskCheckError("kill-switch", "kill switch is engaged — all perps orders are refused");
-  }
-  if (!input.bookNonEmpty) {
-    throw new RiskCheckError("empty-market", "order book is empty — refusing to price an order into no liquidity");
-  }
-  if (!(input.notionalUsd > 0)) {
-    throw new PerpsValidationError("notionalUsd", "notionalUsd must be positive");
-  }
-  if (input.notionalUsd < policy.minNotionalUsd) {
-    throw new RiskCheckError(
-      "sizing-floor",
-      `notional $${input.notionalUsd} is below the $${policy.minNotionalUsd} minimum`,
-    );
-  }
-  if (input.notionalUsd > policy.maxNotionalUsd) {
-    throw new RiskCheckError(
-      "notional-cap",
-      `notional $${input.notionalUsd} exceeds the $${policy.maxNotionalUsd} per-order cap`,
-    );
-  }
-  if (input.leverage > policy.maxLeverage) {
-    throw new RiskCheckError(
-      "leverage-cap",
-      `leverage ${input.leverage}x exceeds the ${policy.maxLeverage}x cap`,
-    );
-  }
-  if (input.currentExposureUsd + input.notionalUsd > policy.maxTotalExposureUsd) {
-    throw new RiskCheckError(
-      "exposure-cap",
-      `exposure $${input.currentExposureUsd} + order $${input.notionalUsd} exceeds the $${policy.maxTotalExposureUsd} total cap`,
-    );
-  }
-  if (
-    policy.maxDailyLossUsd !== undefined &&
-    input.dailyLossUsd !== undefined &&
-    input.dailyLossUsd >= policy.maxDailyLossUsd
-  ) {
-    throw new RiskCheckError(
-      "daily-loss-cap",
-      `daily loss $${input.dailyLossUsd} has reached the $${policy.maxDailyLossUsd} circuit-breaker cap`,
-    );
-  }
-  return { ok: true, dryRun: policy.dryRun };
+export interface PreflightReport {
+  ok: boolean;
+  mode: TradingMode;
+  blocking: string[];
+  warnings: string[];
 }
 
 /**
- * Equity-fraction sizing, mirroring money.ts calculatePositionSize:
- * orderUsd = equity × pct, refused above the per-order notional cap;
- * base size = orderUsd / reserve price, FLOORED to a lot multiple
- * (floor(rawSize / lotSize) × lotSize); a result below MIN_ORDER_FLOOR
- * (0.001 in money.ts) REFUSES instead of rounding up into an
- * unintended size.
+ * The repos' preflight, faithfully: collect ALL blocking reasons
+ * (missing RPC, missing wallet, symbol not allowlisted, notional
+ * out of bounds, leverage over cap, spread over cap, live execution
+ * while mode ≠ live) plus warnings. `ok = blocking.length === 0`.
  */
-export function sizePerpsOrder(input: {
-  policy: PerpsRiskPolicy;
-  equityUsd: number;
-  pctOfEquity: number;
-  priceUsd: number;
-  /** Venue lot size (money.ts floors to lot multiples). Default 1. */
-  lotSize?: number;
-  /** Minimum order floor in base units (money.ts MIN_ORDER_FLOOR). Default 0.001. */
-  minOrderFloor?: number;
-}): { notionalUsd: number; lots: number } {
-  const { policy } = input;
-  if (!(input.equityUsd > 0)) throw new PerpsValidationError("equityUsd", "equityUsd must be positive");
-  if (!(input.pctOfEquity > 0 && input.pctOfEquity <= 1)) {
-    throw new PerpsValidationError("pctOfEquity", "pctOfEquity must be in (0, 1]");
+export function buildPreflightReport(
+  ctx: PreflightContext,
+  req: PreflightRequest,
+): PreflightReport {
+  const { limits } = ctx;
+  const blocking: string[] = [];
+  const warnings: string[] = [];
+
+  if (!ctx.rpcUrl) blocking.push("missing-rpc: no Solana RPC configured");
+  if (limits.requireWallet && !ctx.wallet) {
+    blocking.push("missing-wallet: no wallet configured (CLAWD_PERPS_WALLET / LOCK_WALLET_ADDRESS)");
   }
-  if (!(input.priceUsd > 0)) throw new PerpsValidationError("priceUsd", "priceUsd must be positive");
-  const lotSize = input.lotSize ?? 1;
-  const floor = input.minOrderFloor ?? 0.001;
-  const notionalUsd = Math.min(policy.maxNotionalUsd, input.equityUsd * input.pctOfEquity);
-  const rawSize = notionalUsd / input.priceUsd;
-  const lots = Math.floor(rawSize / lotSize) * lotSize;
-  if (lots < floor || lots <= 0) {
-    throw new RiskCheckError(
-      "sizing-floor",
-      `sized ${rawSize} base units at $${input.priceUsd} floors to ${lots} — below the order floor; refusing rather than rounding up`,
+  if (!limits.allowedSymbols.includes(req.symbol)) {
+    blocking.push(`symbol-not-allowed: ${req.symbol} is not in [${limits.allowedSymbols.join(", ")}]`);
+  }
+  if (!(req.notionalUsd > 0)) {
+    blocking.push("notional-invalid: notionalUsd must be positive");
+  } else if (req.notionalUsd > limits.maxNotionalUsd) {
+    blocking.push(
+      `notional-cap: $${req.notionalUsd} exceeds the $${limits.maxNotionalUsd} max (PERPS_MAX_NOTIONAL_USD)`,
     );
   }
-  return { notionalUsd, lots };
+  if (req.leverage !== undefined && req.leverage > limits.maxLeverage) {
+    blocking.push(`leverage-cap: ${req.leverage}x exceeds the ${limits.maxLeverage}x max (PERPS_MAX_LEVERAGE)`);
+  }
+  if (req.expectedSpreadBps !== undefined && req.expectedSpreadBps > limits.maxSpreadBps) {
+    blocking.push(
+      `spread-cap: ${req.expectedSpreadBps}bps exceeds the ${limits.maxSpreadBps}bps max (PERPS_MAX_SPREAD_BPS)`,
+    );
+  }
+  const wantsLive = req.execution === "vulcan-live" || req.execution === "rise-live";
+  if (wantsLive && ctx.mode !== "live") {
+    blocking.push(
+      `live-not-armed: execution "${req.execution}" requires mode "live" (LIVE_TRADING + OPERATOR_CONFIRMED + PERPS_SIM_ONLY off); current mode is "${ctx.mode}"`,
+    );
+  }
+  if (ctx.mode !== "live") {
+    warnings.push(
+      "Live execution must still simulate and sign outside this layer — preflight approval is not a submission.",
+    );
+  }
+
+  return { ok: blocking.length === 0, mode: ctx.mode, blocking, warnings };
+}
+
+// ------------------------------------------------------- Imperial layer
+
+export interface ImperialRiskDefaults {
+  /** IMPERIAL_MAX_SIZE_USD default. */
+  maxSizeUsd: number;
+  /** IMPERIAL_SLIPPAGE_BPS default. */
+  slippageBps: number;
+  /** IMPERIAL_ALLOWED_SYMS default. */
+  allowedSymbols: string[];
+}
+
+export const DEFAULT_IMPERIAL_RISK: ImperialRiskDefaults = {
+  maxSizeUsd: 100,
+  slippageBps: 50,
+  allowedSymbols: ["SOL", "ETH", "BTC"],
+};
+
+/**
+ * The Imperial layer's size handling — a CLAMP, not a block:
+ * buildOrderRequest throws on a non-allowlisted symbol, silently
+ * clamps size to min(sizeUsd, maxSizeUsd), and throws if the result
+ * is ≤ 0. Surfaced explicitly because it differs from preflight:
+ * an order the preflight would BLOCK at $250 can be silently
+ * resized to $100 by this layer. The kit reports the clamp; what a
+ * caller does with a resized order is their decision.
+ */
+export function clampImperialSize(
+  sizeUsd: number,
+  maxSizeUsd: number = DEFAULT_IMPERIAL_RISK.maxSizeUsd,
+): { sizeUsd: number; clamped: boolean } {
+  const clamped = sizeUsd > maxSizeUsd;
+  return { sizeUsd: Math.min(sizeUsd, maxSizeUsd), clamped };
 }

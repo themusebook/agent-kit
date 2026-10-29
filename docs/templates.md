@@ -19,7 +19,7 @@ per service name).
 | `pump-agent` | pump.fun bonding curve | — | finance pump flow descriptors (create-coin/swap/fees/invoices); user co-signs everything |
 | `stonk-agent` | stonk.fun — API path or BYO LaunchLab, chosen from `/stats` at runtime | — | backed by the real `@musebook/stonk` client (see stonk.md) |
 | `rwa-agent` | Genesis bonding curve | — | agent paired 1:1 with a tokenized real-world asset; trades from the Asset Signer PDA |
-| `perps-agent` | none (margin + risk, not a launch) | — | Phoenix-routed perps: Imperial descriptors + risk gate; Phoenix-direct is market-data only (see perps.md) |
+| `perps-agent` | none (margin + risk, not a launch) | — | Phoenix venue via Rise/Vulcan + Imperial router orders; preflight-report risk model (see perps.md) |
 | `decision-agent` | none | — | JEV typed judgment over a dynamic, reachability-built action space; fail-closed, paper default (see perps.md) |
 
 ## The venues, honestly
@@ -46,12 +46,15 @@ per service name).
   exist, `/stats` decides which is live at runtime, BYO LaunchLab
   launches are planned + adoption-validated, and Fee Key NFT claims
   carry typed 403/409 semantics. See docs/migration-v0.3.0.md.
-- **perps-agent** — venue variants with asymmetric grounding, stated
-  on the preset's face: Imperial (Phoenix-routed) is grounded in the
-  owner's two perps repos; Phoenix-direct is market-data only
-  because no inspected source places native Phoenix orders. Risk
-  gate + order descriptors live in `@musebook/perps`
-  (docs/perps.md).
+- **perps-agent** — grounded in the owner's two perps repos with
+  the topology stated plainly: Phoenix is the venue (Rise SDK read
+  plane in clawd-agents-perps; a vendored stub in clawd-perps-agent),
+  Vulcan is the plan/preview layer, and Imperial is a
+  multi-underwriter router + the one real (JWT, server-side,
+  dry-run-default) submission path. The preflight report, Imperial
+  order/batch descriptors and the absent-features list (no grid,
+  TWAP, Touch, or exposure checks in either repo) live in
+  `@musebook/perps` (docs/perps.md).
 - **decision-agent** — the JEV pattern from jev-trader-solana:
   typed judgment over a dynamic action space built from reachable
   venues, fail-closed to BLOCKED, paper by default, memory recall
