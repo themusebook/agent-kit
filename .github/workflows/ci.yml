@@ -21,6 +21,7 @@ jobs:
       - run: cd agents/computer && bun install --frozen-lockfile && bun test
       - run: cd agents/shared && bunx tsc --noEmit
       - run: cd agents/computer && bunx tsc --noEmit
+      - run: cd agents/trading && bun install --frozen-lockfile && bun test && bunx tsc --noEmit
   adk:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: agents/adk } }

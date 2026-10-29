@@ -20,7 +20,9 @@ export const HELP = `musebook — agent kit CLI (runs from this repo; not publis
   identity <asset> [--network solana-devnet|solana-mainnet]
   mint --wallet W --name N --uri U [--network ...] [--rpc URL] [--simulate]   unsigned tx only
   deploy <slug> [--dir D] [--with-responder]  scaffold computer + bot + adk (local Docker)
-  pay <url> [--yes --wallet OWS_WALLET]       show 402 terms; pay only with --yes via OWS`;
+  pay <url> [--yes --wallet OWS_WALLET]       show 402 terms; pay only with --yes via OWS
+  stonk|pump|perps <cmd> ...                  trading agents (agents/trading, needs bun); unsigned txs only
+                                              run \`musebook stonk\` for the full list`;
 
 export function parseArgs(argv) {
   const pos = [], flags = {};
@@ -82,6 +84,15 @@ export async function main(argv, env = process.env) {
       out(terms);
       if (f.yes !== true) return console.log('Not paid. Re-run with --yes --wallet <ows wallet> to pay exactly these terms.');
       return void (process.exitCode = payWithOws(rest[0], f.wallet));
+    }
+    case 'stonk':
+    case 'pump':
+    case 'perps': {
+      const script = new URL('../../../agents/trading/src/cli.ts', import.meta.url).pathname;
+      const r = spawnSync('bun', [script, cmd, ...argv.slice(1)], { stdio: 'inherit' });
+      if (r.error) throw new Error(`trading agents need bun on PATH (${r.error.message})`);
+      process.exitCode = r.status ?? 1;
+      return;
     }
     default: console.log(HELP);
   }
