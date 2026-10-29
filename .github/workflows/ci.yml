@@ -34,7 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: { service: [toolkit, server, worker, supervisor] }
-    defaults: { run: { working-directory: services/${{ matrix.service }} } }
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
