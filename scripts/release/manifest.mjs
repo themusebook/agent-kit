@@ -9,13 +9,17 @@ for (const pkg of PUBLISHABLE) {
   const p = JSON.parse(readFileSync(file, "utf8"));
   delete p.private;
   p.name = pkg.name;
-  p.version = p.version && p.name === pkg.name && p.version !== "0.3.0" ? p.version : "0.1.0";
+  p.version = p.version && p.name === pkg.name && p.version !== "0.3.0" ? p.version : "0.1.1";
   p.license = "MIT";
   p.repository = { type: "git", url: `git+${REPO}.git`, directory: pkg.dir };
   p.homepage = `${REPO}/tree/main/${pkg.dir}#readme`;
   p.bugs = { url: `${REPO}/issues` };
-  p.files = pkg.files ?? ["dist", "README.md", "LICENSE"];
-  if (!pkg.bin) {
+  p.files = pkg.files ?? (pkg.raw ? ["src", "README.md", "LICENSE"] : ["dist", "README.md", "LICENSE"]);
+  if (pkg.raw) {
+    p.main = "./src/index.mjs";
+    p.types = "./src/index.d.mts";
+    p.exports = { ".": { types: "./src/index.d.mts", default: "./src/index.mjs" }, "./package.json": "./package.json" };
+  } else if (!pkg.bin) {
     p.main = "./dist/index.js";
     p.types = "./dist/index.d.ts";
     p.exports = { ".": { types: "./dist/index.d.ts", default: "./dist/index.js" } };
@@ -24,10 +28,10 @@ for (const pkg of PUBLISHABLE) {
   }
   p.sideEffects = false;
   p.publishConfig = { access: "public", provenance: true };
-  if (!existsSync(`${pkg.dir}/tsconfig.build.json`) && !pkg.bin) {
+  if (!existsSync(`${pkg.dir}/tsconfig.build.json`) && !pkg.bin && !pkg.raw) {
     writeFileSync(`${pkg.dir}/tsconfig.build.json`, JSON.stringify({ extends: pkg.buildBase ?? "../../tsconfig.build.json", compilerOptions: { rootDir: "src", outDir: "dist" }, include: ["src"] }, null, 2) + "\n");
   }
-  if (!pkg.bin) { p.scripts = { ...p.scripts, build: "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs", prepack: "node ../../scripts/release/check-dist.mjs" }; }
+  if (!pkg.bin && !pkg.raw) { p.scripts = { ...p.scripts, build: "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs", prepack: "node ../../scripts/release/check-dist.mjs" }; }
   writeFileSync(file, JSON.stringify(p, null, 2) + "\n");
   console.log(`${p.name}@${p.version}`);
 }

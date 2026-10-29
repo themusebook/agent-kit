@@ -1,0 +1,40 @@
+{
+  "dependencies": {},
+  "description": "Musebook Agent Kit — Clawd A2A relay client: discovery, health, presence, register, send, inbox and ack for the agent-to-agent message bus at musebook.trade. Bearer tokens are shown once by the relay and are never logged or persisted by default.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "name": "@musebook/a2a",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/a2a"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/a2a#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/release/fix-esm.mjs",
+    "prepack": "node ../../scripts/release/check-dist.mjs"
+  }
+}

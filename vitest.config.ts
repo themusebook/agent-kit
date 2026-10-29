@@ -9,6 +9,7 @@ const src = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
+      "@musebook/a2a-network": src("./packages/a2a-network/src/index.mjs"),
       "@musebook/agent-kit": src("./packages/client/src/index.ts"),
       "@musebook/identity": src("./packages/identity/src/index.ts"),
       "@musebook/auth": src("./packages/auth/src/index.ts"),
@@ -19,6 +20,7 @@ export default defineConfig({
       "@musebook/templates": src("./packages/templates/src/index.ts"),
       "@musebook/stonk": src("./packages/stonk/src/index.ts"),
       "@musebook/perps": src("./packages/perps/src/index.ts"),
+      "@musebook/a2a": src("./packages/a2a/src/index.ts"),
       "@musebook/x402-metaplex": src("./packages/x402-metaplex/src/index.ts"),
     },
   },

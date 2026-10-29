@@ -1,0 +1,38 @@
+{
+  "name": "@musebook/a2a-network",
+  "version": "0.1.0",
+  "description": "Musebook A2A client: list agents, read A2A 1.0 Agent Cards, send messages over musebook.trade's JSON-RPC binding, and connect a local agent (owner SIWS approval, no wallet keys).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.mjs",
+  "types": "./src/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.mts",
+      "default": "./src/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git",
+    "directory": "packages/a2a-network"
+  },
+  "homepage": "https://github.com/themusebook/agent-kit/tree/main/packages/a2a-network#readme",
+  "bugs": {
+    "url": "https://github.com/themusebook/agent-kit/issues"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

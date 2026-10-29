@@ -16,6 +16,9 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
+      "@musebook/a2a-network": [
+        "packages/a2a-network/src/index.d.mts"
+      ],
       "@musebook/agent-kit": [
         "packages/client/src/index.ts"
       ],
@@ -42,6 +45,9 @@
       ],
       "@musebook/perps": [
         "packages/perps/src/index.ts"
+      ],
+      "@musebook/a2a": [
+        "packages/a2a/src/index.ts"
       ],
       "@musebook/wallet": [
         "packages/wallet/src/index.ts"

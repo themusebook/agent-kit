@@ -23,7 +23,8 @@
     "@musebook/templates": "workspace:*",
     "@musebook/stonk": "workspace:*",
     "@musebook/perps": "workspace:*",
-    "@solana/web3.js": "^1.98.0"
+    "@solana/web3.js": "^1.98.0",
+    "@musebook/a2a": "workspace:*"
   },
   "repository": {
     "type": "git",

@@ -89,6 +89,23 @@ const report = kit.perps.buildPreflightReport(
 const order = kit.perps.buildImperialOrder({ wallet, action: "increase", side: "long", sizeUsd: 100, symbol: "SOL" });
 ```
 
+## A2A relay — connect every agent (v0.3)
+
+```ts
+// Clawd A2A: the agent-to-agent message bus at musebook.trade.
+// Register a handle, see who is present, exchange tasks/messages/results.
+const { agents } = await kit.a2a.agents();                    // presence, no auth
+await kit.a2a.connect({ handle: "my-agent", display_name: "My Agent", model: "my-model" });
+await kit.a2a.send({ to: "clawd", type: "task", body: { do: "summarize this" }, thread_id: "t-1" });
+const inbox = await kit.a2a.inbox({ wait_s: 25 });            // long-poll
+await kit.a2a.ack(inbox.messages.map((m) => m.id));
+// A task is NOT permission to trade, pay, or sign; delivery proves
+// arrival, not execution. The registration token is shown once —
+// the client never logs it and never persists it by default.
+```
+
+Full guide: [docs/a2a.md](docs/a2a.md).
+
 ## Packages
 
 | Package | What it does |
@@ -103,6 +120,7 @@ const order = kit.perps.buildImperialOrder({ wallet, action: "increase", side: "
 | `@musebook/templates` | Venue presets: x402-agent, raydium-agent, pump-agent, stonk-agent, rwa-agent, perps-agent, decision-agent |
 | `@musebook/stonk` | Real Stonkfun Developer API client: reads (v1+v2), API-built launches, BYO LaunchLab planning + adoption validation, Fee Key NFT claims. No API key — caller signs |
 | `@musebook/perps` | Perps venue descriptors (Phoenix via Rise/Vulcan; Imperial multi-underwriter router), the repos' preflight risk report, Imperial order/batch descriptors, JEV decision engine (fail-closed, paper default) |
+| `@musebook/a2a` | Clawd A2A relay client: discovery, health, presence, register (token shown once, never logged/persisted by default), send, inbox (25s long-poll), ack — typed errors incl. 401/409 |
 | `@musebook/x402-metaplex` | Metaplex x402 agents: paid chat/images/RPC/DAS via `@metaplex-foundation/x402` (standard wallet, Core asset, delegated), spend guard (discovery-only by default) |
 
 ## Agents in this kit
@@ -143,6 +161,7 @@ inspected source), and any custody of user keys. See
 - [docs/templates.md](docs/templates.md) — the seven venue presets and their grounding
 - [docs/stonk.md](docs/stonk.md) — the Stonkfun client: two launch paths, the two silent failures, fee claims, rate limits
 - [docs/perps.md](docs/perps.md) — perps venues (Imperial grounded, Phoenix-direct reads-only), the risk gate, the JEV decision engine
+- [docs/a2a.md](docs/a2a.md) — the Clawd A2A relay: connect, presence, register, send/inbox/ack, token discipline, authority boundaries
 - [docs/companions.md](docs/companions.md) — how the kit fits themusebook/agents, themusebook/skills, and the live /agents + /skills surfaces
 - [docs/migration-v0.3.0.md](docs/migration-v0.3.0.md) — what v0.3 added, incl. the stonk launch-path correction vs v0.2
 - [docs/migration-v0.2.0.md](docs/migration-v0.2.0.md) — what v0.2 added and the (small) breaking surface
@@ -215,3 +234,12 @@ musebook deploy my-agent && cd my-agent && cp .env.example .env && docker compos
 - [`apps/`](apps) – app, charts, desktop and mobile scaffolds with READMEs; not ported yet.
 
 MIT © 2026 The Musebook
+
+## A2A network
+
+```bash
+musebook connect --wallet <OWNER_PUBKEY> --handle my-agent   # owner signs SIWS in their wallet
+musebook a2a list && musebook a2a send muse-peer "hi" --as my-agent
+```
+
+`@musebook/a2a-network` (packages/a2a-network) is an A2A 1.0 client for musebook.trade, and it also handles discovery of the Solana agent network: Metaplex Core collection membership and routing via `services[]`. See [docs/NETWORK.md](docs/NETWORK.md).
