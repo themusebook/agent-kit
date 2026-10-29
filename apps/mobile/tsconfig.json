@@ -1,0 +1,33 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@themusebook/agent-kit-identity": [
+        "../../packages/identity/src/index.ts"
+      ],
+      "@themusebook/agent-kit-discovery": [
+        "../../packages/discovery/src/index.ts"
+      ],
+      "@themusebook/agent-kit-payments": [
+        "../../packages/payments/src/index.ts"
+      ],
+      "@themusebook/agent-kit-wallet": [
+        "../../packages/wallet/src/index.ts"
+      ],
+      "@solana/web3.js": [
+        "./node_modules/@solana/web3.js"
+      ],
+      "@themusebook/agent-kit-auth": [
+        "../../packages/auth/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "test",
+    "index.ts",
+    "app.config.ts"
+  ]
+}
