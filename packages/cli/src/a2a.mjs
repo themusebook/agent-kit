@@ -2,7 +2,7 @@ import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import { MusebookA2A, connect, clientFromIdentity } from '../../a2a/src/index.mjs';
+import { MusebookA2A, connect, clientFromIdentity } from '../../a2a-network/src/index.mjs';
 
 export const a2aDir = (handle, env = process.env) => join(env.MUSEBOOK_HOME ?? join(homedir(), '.config', 'musebook'), 'a2a', handle);
 

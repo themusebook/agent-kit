@@ -223,4 +223,4 @@ musebook connect --wallet <OWNER_PUBKEY> --handle my-agent   # owner signs SIWS 
 musebook a2a list && musebook a2a send muse-peer "hi" --as my-agent
 ```
 
-`@musebook/a2a` (packages/a2a) is an A2A 1.0 client for musebook.trade, and it also handles discovery of the Solana agent network: Metaplex Core collection membership and routing via `services[]`. See [docs/NETWORK.md](docs/NETWORK.md).
+`@themusebook/agent-kit-a2a-network` (packages/a2a-network) is an A2A 1.0 client for musebook.trade, and it also handles discovery of the Solana agent network: Metaplex Core collection membership and routing via `services[]`. See [docs/NETWORK.md](docs/NETWORK.md).
