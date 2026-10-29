@@ -94,3 +94,57 @@ Probed on 2026-10-29 with `initialize` and `tools/list` only:
 ## Tests
 
 `bun test` runs 48 tests offline. They use fixtures from the Stonk spec, a live-captured pricing response, the Pump IDLs and the pumpai probe, with mocked HTTP.
+
+## Backpack (docs.backpack.exchange)
+
+Public reads need no key: `musebook backpack markets|book|ticker|trades`. Depth `--limit` must be one of 5, 10, 20, 50, 100, 500, 1000.
+
+Orders are preview-only. `musebook backpack order --preview ...` prints the request and the exact signing string
+(`instruction=orderExecute&<sorted params>&timestamp=<ms>&window=<ms>`). You sign it with your own ED25519 API secret
+on your own machine and add `X-API-Key` and `X-Signature`. The kit never reads, stores or logs that secret. Creating the
+API key is your step, in Backpack's settings.
+
+## Helius
+
+`HELIUS_API_KEY` is read from the server's environment at runtime. It is never committed or logged, and `?api-key=` is
+redacted from every error. Browser code talks to your own `/api/rpc` proxy (`rpcProxyHandler`, read methods only), or
+directly to `https://sender.helius-rpc.com/fast`, the only keyless browser-safe endpoint.
+
+- `musebook helius assets --owner W` DAS `getAssetsByOwner` with `showFungible` and `showNativeBalance`; `searchAssets` in code
+- `musebook helius history --address A` `getTransactionsForAddress`
+- `musebook helius fees --accounts A,B` `getPriorityFeeEstimate`. Priority fees always come from here, never hard-coded
+- `musebook helius send-signed --tx BASE64` submits an ALREADY user-signed tx through Sender with `skipPreflight: true` and
+  `maxRetries: 0`. It refuses unsigned txs and any tx without a tip to a Sender tip account (min 0.001 SOL, or 0.000005 SOL with `--swqos-only`).
+  `senderExtras()` adds the compute-unit price and the tip before the user signs.
+- Wallet API balances and history, `webhookConfig()`, `laserstreamConfig()` builders
+- Retries follow the docs: 408/429/5xx and network errors, `Retry-After` first, else 1s doubling to 30s with ±25% jitter, 5 attempts
+- Optional Helius MCP (`npx helius-mcp@latest`): `mcpCallAllowed()` lets only read actions through. `heliusWrite`, keygen,
+  signup, plan, payment and webhook-mutation actions are blocked.
+
+Manual steps for you only: create the Helius account and API key at dashboard.helius.dev (it needs your email and name,
+and any paid plan is paid by you), then set `HELIUS_API_KEY` on your server. The kit never runs agent signup, keygen or autopay.
+
+## Swaps: Jupiter, DFlow, OKX
+
+All three return an unsigned base64 transaction for the user's wallet: `musebook swap jupiter|dflow|okx --taker W --in MINT --out MINT --amount RAW`.
+
+- Jupiter Swap API V2 `GET https://api.jup.ag/swap/v2/order` (needs `taker`; `JUPITER_API_KEY` as `x-api-key`). After signing, `POST /execute`.
+- DFlow `GET /order` on `https://dev-quote-api.dflow.net` by default (no key). DFlow has no CORS, so call it from your server.
+  Production keys come from pond.dflow.net and go in `DFLOW_API_KEY`.
+- OKX via the `onchainos` CLI, which you install yourself. The kit refuses honeypots (`isHoneyPot`) and price impact over 10%.
+  It never auto-executes from signals.
+
+## Phantom
+
+`phantomConfig()` builds the config for `@phantom/react-sdk`, `@phantom/browser-sdk` or `@phantom/react-native-sdk`. Google
+and Apple need an appId from phantom.com/portal. Extension wallets use `signTransaction` and then Sender. Embedded wallets
+must use `signAndSendTransaction`. New code should not use `window.phantom` or wallet-adapter.
+
+## SVM dev agent
+
+`musebook svm route --q "..."` points to the right references in the Solana Foundation
+[solana-dev skill](https://github.com/solana-foundation/solana-dev-skill) (MIT, pinned at a265d11) and Helius core-ai `svm` (MIT, fbf6b13).
+Topics include common errors, the version matrix, runtime, Kit frontend, Codama, Keychain, Kora, Mosaic, payments,
+testing (LiteSVM, Mollusk, Surfpool), tx v1, security and programs. Install the skill with `scripts/install-solana-dev-skill.sh [dest]`
+or `npx skills add solana-foundation/solana-dev-skill`. The agent covers docs and code only: scaffolding, IDL and autofixer guidance.
+It never deploys. Keychain, Kora and other server-side signing stay documentation-only, and the kit holds no keys.

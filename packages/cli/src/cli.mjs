@@ -21,7 +21,7 @@ export const HELP = `musebook — agent kit CLI (runs from this repo; not publis
   mint --wallet W --name N --uri U [--network ...] [--rpc URL] [--simulate]   unsigned tx only
   deploy <slug> [--dir D] [--with-responder]  scaffold computer + bot + adk (local Docker)
   pay <url> [--yes --wallet OWS_WALLET]       show 402 terms; pay only with --yes via OWS
-  stonk|pump|perps <cmd> ...                  trading agents (agents/trading, needs bun); unsigned txs only
+  stonk|pump|perps|backpack|helius|swap|svm <cmd> trading agents (agents/trading, needs bun); unsigned txs only
                                               run \`musebook stonk\` for the full list`;
 
 export function parseArgs(argv) {
@@ -87,7 +87,11 @@ export async function main(argv, env = process.env) {
     }
     case 'stonk':
     case 'pump':
-    case 'perps': {
+    case 'perps':
+    case 'backpack':
+    case 'helius':
+    case 'swap':
+    case 'svm': {
       const script = new URL('../../../agents/trading/src/cli.ts', import.meta.url).pathname;
       const r = spawnSync('bun', [script, cmd, ...argv.slice(1)], { stdio: 'inherit' });
       if (r.error) throw new Error(`trading agents need bun on PATH (${r.error.message})`);

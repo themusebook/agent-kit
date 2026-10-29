@@ -2,6 +2,10 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { StonkClient, planClaim, planStonkLaunch, buildStonkTrade, type LaunchMode } from "./stonk/index.ts";
 import { PumpAiMcp, planClaimCreatorFees, planCreate, planDistribute, planFeeSharing, planTrade } from "./pumpfun-founder/index.ts";
 import { ImperialVenue, PhoenixVenue, type PerpOrderIntent } from "./perps/index.ts";
+import { BackpackPublic, previewOrder, type OrderInput } from "./backpack/index.ts";
+import { Helius, redactApiKey, sendSigned } from "./helius/index.ts";
+import { dflowOrder, jupiterOrder, okxSwap } from "./swaps/index.ts";
+import { route } from "./svm/index.ts";
 import { assertNoSecrets, type Network } from "./unsigned.ts";
 
 export const HELP = `trading agents: every command prints data or an UNSIGNED transaction for your wallet. Nothing is signed or sent.
@@ -22,6 +26,21 @@ export const HELP = `trading agents: every command prints data or an UNSIGNED tr
 
   perps markets --venue phoenix|imperial
   perps order --venue phoenix|imperial --authority W --symbol SOL --side long|short --base 0.1 --limit-usd 150 [--rpc URL]
+
+  backpack markets [--market-type SPOT|PERP]      public reads, no key
+  backpack book --symbol SOL_USDC [--limit N]
+  backpack ticker|trades --symbol SOL_USDC
+  backpack order --preview --symbol S --side Bid|Ask --order-type Limit|Market --quantity Q [--price P] [--time-in-force GTC|IOC|FOK]
+                                                  prints the string YOU sign locally; the kit holds no Backpack secret
+
+  helius assets --owner W [--devnet]              DAS getAssetsByOwner (fungibles + native). Needs HELIUS_API_KEY in env
+  helius history --address A [--limit N]          getTransactionsForAddress
+  helius fees --accounts A,B [--level Medium]     getPriorityFeeEstimate
+  helius send-signed --tx BASE64 [--swqos-only]   submit an ALREADY user-signed tx with a Sender tip via Sender
+
+  swap jupiter|dflow|okx --taker W --in MINT --out MINT --amount RAW [--slippage-bps N]
+                                                  unsigned swap tx only (okx needs your own onchainos CLI)
+  svm route --q "question"                        which solana-dev skill references answer it (docs only)
 
 Network: devnet unless --network mainnet-beta. Without --rpc a dry-run blockhash is used (the tx is for inspection, not landing).`;
 
@@ -112,12 +131,48 @@ export async function main(argv: string[], io: { out: (v: unknown) => void } = {
       }
     }
   }
+  if (area === "backpack") {
+    const bp = new BackpackPublic();
+    switch (cmd) {
+      case "markets": return io.out(await bp.markets(typeof f.marketType === "string" ? f.marketType : undefined));
+      case "book": return io.out(await bp.depth(need(f, "symbol"), f.limit ? Number(f.limit) : undefined));
+      case "ticker": return io.out(await bp.ticker(need(f, "symbol")));
+      case "trades": return io.out(await bp.trades(need(f, "symbol"), f.limit ? Number(f.limit) : undefined));
+      case "order": {
+        if (f.preview !== true) throw new Error("backpack order is preview-only: pass --preview");
+        const o: OrderInput = { symbol: need(f, "symbol"), side: need(f, "side") as OrderInput["side"], orderType: need(f, "orderType") as OrderInput["orderType"] };
+        for (const k of ["quantity", "quoteQuantity", "price", "timeInForce"] as const) if (typeof f[k] === "string") (o as any)[k] = f[k];
+        return io.out(previewOrder(o));
+      }
+    }
+  }
+
+  if (area === "helius") {
+    if (cmd === "send-signed") return io.out({ signature: await sendSigned(need(f, "tx"), { swqosOnly: f.swqosOnly === true }) });
+    const h = new Helius({ network: f.devnet === true ? "devnet" : "mainnet" });
+    switch (cmd) {
+      case "assets": return io.out(await h.assetsByOwner(need(f, "owner"), { limit: Number(f.limit ?? 100) }));
+      case "history": return io.out(await h.transactionsForAddress(need(f, "address"), { limit: Number(f.limit ?? 25) }));
+      case "fees": return io.out(await h.priorityFee({ accountKeys: need(f, "accounts").split(","), priorityLevel: (typeof f.level === "string" ? f.level : "Medium") as any, includeAllPriorityFeeLevels: true }));
+    }
+  }
+
+  if (area === "swap") {
+    const q = { inputMint: need(f, "in"), outputMint: need(f, "out"), amount: need(f, "amount"), taker: need(f, "taker"), ...(f.slippageBps ? { slippageBps: Number(f.slippageBps) } : {}) };
+    switch (cmd) {
+      case "jupiter": return io.out(await jupiterOrder(q));
+      case "dflow": return io.out(await dflowOrder(q));
+      case "okx": return io.out(await okxSwap({ from: q.inputMint, to: q.outputMint, amount: q.amount, wallet: q.taker, ...(f.slippage ? { slippage: String(f.slippage) } : {}) }));
+    }
+  }
+
+  if (area === "svm" && cmd === "route") return io.out(route(need(f, "q")));
   console.log(HELP);
 }
 
 if (import.meta.main) {
   main(process.argv.slice(2)).catch((e) => {
-    console.error(e instanceof Error ? e.message : e);
+    console.error(redactApiKey(e instanceof Error ? e.message : String(e)));
     process.exit(1);
   });
 }

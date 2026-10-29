@@ -1,0 +1,1060 @@
+{
+ "openapi": "3.0.0",
+ "info": {
+  "title": "Backpack Exchange API",
+  "version": "1.0",
+  "source": "https://docs.backpack.exchange/"
+ },
+ "paths": {
+  "/api/v1/markets": {
+   "get": {
+    "tags": [
+     "Markets"
+    ],
+    "summary": "Get markets.",
+    "description": "Retrieves all the markets that are supported by the exchange.",
+    "parameters": [
+     {
+      "name": "marketType",
+      "schema": {
+       "type": "array",
+       "items": {
+        "$ref": "#/components/schemas/MarketType"
+       }
+      },
+      "in": "query",
+      "description": "Market type. Defaults to return spot and perp.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "If-None-Match",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Success.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/Market"
+         }
+        }
+       }
+      },
+      "headers": {
+       "CACHE-CONTROL": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       },
+       "ETAG": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "304": {
+      "description": "Not modified.",
+      "headers": {
+       "CACHE-CONTROL": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       },
+       "ETAG": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "Internal server error.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "get_markets"
+   }
+  },
+  "/api/v1/depth": {
+   "get": {
+    "tags": [
+     "Markets"
+    ],
+    "summary": "Get depth.",
+    "description": "Retrieves the order book depth for a given market symbol.",
+    "parameters": [
+     {
+      "name": "symbol",
+      "schema": {
+       "type": "string"
+      },
+      "in": "query",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "limit",
+      "schema": {
+       "$ref": "#/components/schemas/DepthLimit"
+      },
+      "in": "query",
+      "description": "Limit on the number of price levels to return on each side. If\nomitted, up to `5000` levels are returned.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Success.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/Depth"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Bad request.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "The market has no order book in the matching engine. Settled markets\nkeep their row in the replica so their history stays readable, so a\nsymbol can be listed by `/markets` and still have nothing to quote.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "get_depth"
+   }
+  },
+  "/api/v1/ticker": {
+   "get": {
+    "summary": "Get ticker.",
+    "description": "Retrieves the ticker for a single market.",
+    "parameters": [
+     {
+      "name": "symbol",
+      "schema": {
+       "type": "string"
+      },
+      "in": "query",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "interval",
+      "schema": {
+       "$ref": "#/components/schemas/TickerInterval"
+      },
+      "in": "query",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "source",
+      "schema": {
+       "$ref": "#/components/schemas/KlineSource"
+      },
+      "in": "query",
+      "description": "Data source. Defaults to `Venue`: only venue-traded data \u2014 for\ntokenized stocks the raw venue tape, not FMV prices. `External`\nreturns 24h external-market stats and is only valid for\ntokenized stock markets with the `1d` interval.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/Ticker"
+        }
+       }
+      },
+      "headers": {
+       "CACHE-CONTROL": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "204": {
+      "description": ""
+     },
+     "400": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "get_ticker",
+    "tags": [
+     "Markets"
+    ]
+   }
+  },
+  "/api/v1/klines": {
+   "get": {
+    "summary": "Get K-lines.",
+    "description": "Returns candles for the given market and interval. Recent data is\nserved from the in-memory store; requests reaching further back\nthan the store's retention window fall through to ClickHouse.",
+    "parameters": [
+     {
+      "name": "symbol",
+      "schema": {
+       "type": "string"
+      },
+      "in": "query",
+      "description": "Market symbol, e.g. `SOL_USDC`.",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "interval",
+      "schema": {
+       "$ref": "#/components/schemas/KlineInterval"
+      },
+      "in": "query",
+      "description": "K-line interval.",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "startTime",
+      "schema": {
+       "type": "integer",
+       "format": "int64"
+      },
+      "in": "query",
+      "description": "UTC timestamp in seconds.",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "endTime",
+      "schema": {
+       "type": "integer",
+       "format": "int64"
+      },
+      "in": "query",
+      "description": "UTC timestamp in seconds. Defaults to now.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "priceType",
+      "schema": {
+       "$ref": "#/components/schemas/KlinePriceType"
+      },
+      "in": "query",
+      "description": "K-line price type. Defaults to `last`.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "source",
+      "schema": {
+       "$ref": "#/components/schemas/KlineSource"
+      },
+      "in": "query",
+      "description": "Data source. Defaults to `Venue`: only venue-traded data \u2014 for\ntokenized stocks the raw venue tape, not the FMV price series.\n`External` returns the external-market OHLCV series and is only\nvalid for tokenized stock markets with the `Last` price type.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/Kline"
+         }
+        }
+       }
+      },
+      "headers": {
+       "CACHE-CONTROL": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "get_klines",
+    "tags": [
+     "Markets"
+    ]
+   }
+  },
+  "/api/v1/trades": {
+   "get": {
+    "tags": [
+     "Trades"
+    ],
+    "summary": "Get recent trades.",
+    "description": "Retrieves the most recent trades for a symbol. This is public data and\nis not specific to any account.\n\nThe maximum available recent trades is `1000`. If you need more than\n`1000` trades use the historical trades endpoint.",
+    "parameters": [
+     {
+      "name": "symbol",
+      "schema": {
+       "type": "string"
+      },
+      "in": "query",
+      "description": "Market symbol to query fills for.",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "limit",
+      "schema": {
+       "type": "integer",
+       "format": "uint16"
+      },
+      "in": "query",
+      "description": "Limit the number of fills returned. Default `100`, maximum `1000`.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Success.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/Trade"
+         }
+        }
+       }
+      },
+      "headers": {
+       "CACHE-CONTROL": {
+        "required": true,
+        "deprecated": false,
+        "schema": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Bad request.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "The market has no order book in the matching engine, so it has no\nrecent trades. Settled markets keep their history, which is served by\n`/trades/history`.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "Internal Server Error.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "get_recent_trades"
+   }
+  },
+  "/api/v1/order": {
+   "get": {
+    "tags": [
+     "Order"
+    ],
+    "summary": "Get open order.",
+    "description": "Retrieves an open order from the order book. This only returns the order\nif it is resting on the order book (i.e. has not been completely filled,\nexpired, or cancelled).\n\nOne of `orderId` or `clientId` must be specified; provide only one.\nIf both are provided, `orderId` takes precedence and signed requests\nfail signature verification.\n\n**Instruction:** `orderQuery`",
+    "parameters": [
+     {
+      "name": "X-API-KEY",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "API key",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-SIGNATURE",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "Signature of the request",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-TIMESTAMP",
+      "schema": {
+       "type": "integer",
+       "format": "int64"
+      },
+      "in": "header",
+      "description": "Timestamp of the request in milliseconds",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-WINDOW",
+      "schema": {
+       "type": "integer",
+       "format": "uint64"
+      },
+      "in": "header",
+      "description": "Time the request is valid for in milliseconds (default `5000`, maximum `60000`)",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "clientId",
+      "schema": {
+       "type": "integer",
+       "format": "uint32"
+      },
+      "in": "query",
+      "description": "Client ID of the order.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "orderId",
+      "schema": {
+       "type": "string"
+      },
+      "in": "query",
+      "description": "ID of the order.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "symbol",
+      "schema": {
+       "type": "string"
+      },
+      "in": "query",
+      "description": "Market symbol for the order.",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Success.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/OrderType"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Bad request.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Order not found.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "Internal server error",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "get_order"
+   },
+   "post": {
+    "tags": [
+     "Order"
+    ],
+    "summary": "Execute order.",
+    "description": "Submits an order to the matching engine for execution.\n\n**Instruction:** `orderExecute`",
+    "parameters": [
+     {
+      "name": "X-API-KEY",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "API key",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-SIGNATURE",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "Signature of the request",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-TIMESTAMP",
+      "schema": {
+       "type": "integer",
+       "format": "int64"
+      },
+      "in": "header",
+      "description": "Timestamp of the request in milliseconds",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-WINDOW",
+      "schema": {
+       "type": "integer",
+       "format": "uint64"
+      },
+      "in": "header",
+      "description": "Time the request is valid for in milliseconds (default `5000`, maximum `60000`)",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-BROKER-ID",
+      "schema": {
+       "type": "integer",
+       "format": "uint16"
+      },
+      "in": "header",
+      "description": "Broker ID of the order.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-BROKER-KEY",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "Broker key of the order.",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json; charset=utf-8": {
+       "schema": {
+        "$ref": "#/components/schemas/OrderExecutePayload"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Order executed.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/OrderType"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Bad request.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "Internal server error.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "System under maintenance.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "execute_order"
+   },
+   "delete": {
+    "tags": [
+     "Order"
+    ],
+    "summary": "Cancel open order.",
+    "description": "Cancels an open order from the order book.\n\nOne of `orderId` or `clientId` must be specified; provide only one.\nIf both are provided, `orderId` takes precedence and signed requests\nfail signature verification.\n\n**Instruction:** `orderCancel`",
+    "parameters": [
+     {
+      "name": "X-API-KEY",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "API key",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-SIGNATURE",
+      "schema": {
+       "type": "string"
+      },
+      "in": "header",
+      "description": "Signature of the request",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-TIMESTAMP",
+      "schema": {
+       "type": "integer",
+       "format": "int64"
+      },
+      "in": "header",
+      "description": "Timestamp of the request in milliseconds",
+      "required": true,
+      "deprecated": false,
+      "explode": true
+     },
+     {
+      "name": "X-WINDOW",
+      "schema": {
+       "type": "integer",
+       "format": "uint64"
+      },
+      "in": "header",
+      "description": "Time the request is valid for in milliseconds (default `5000`, maximum `60000`)",
+      "required": false,
+      "deprecated": false,
+      "explode": true
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json; charset=utf-8": {
+       "schema": {
+        "$ref": "#/components/schemas/OrderCancelPayload"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Order cancelled.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/OrderType"
+        }
+       }
+      }
+     },
+     "202": {
+      "description": "Request accepted but not yet executed."
+     },
+     "400": {
+      "description": "Bad request.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "Internal server error.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "System under maintenance.",
+      "content": {
+       "application/json; charset=utf-8": {
+        "schema": {
+         "$ref": "#/components/schemas/ApiErrorResponse"
+        }
+       }
+      }
+     }
+    },
+    "operationId": "cancel_order"
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "OrderExecutePayload": {
+    "type": "object",
+    "title": "OrderExecutePayload",
+    "required": [
+     "orderType",
+     "side",
+     "symbol"
+    ],
+    "properties": {
+     "autoLend": {
+      "type": "boolean",
+      "description": "If true then the order can lend. Spot margin only."
+     },
+     "autoLendRedeem": {
+      "type": "boolean",
+      "description": "If true then the order can redeem a lend if required. Spot margin only."
+     },
+     "autoBorrow": {
+      "type": "boolean",
+      "description": "If true then the order can borrow. Spot margin only."
+     },
+     "autoBorrowRepay": {
+      "type": "boolean",
+      "description": "If true then the order can repay a borrow. Spot margin only."
+     },
+     "clientId": {
+      "type": "integer",
+      "format": "uint32",
+      "description": "Custom order id."
+     },
+     "orderType": {
+      "description": "Order type, market or limit.",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/OrderTypeEnum"
+       },
+       {
+        "description": "Order type, market or limit."
+       }
+      ]
+     },
+     "postOnly": {
+      "type": "boolean",
+      "description": "Only post liquidity, do not take liquidity."
+     },
+     "price": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The order price if this is a limit order."
+     },
+     "quantity": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The order quantity. Market orders must specify either a `quantity` or\n`quoteQuantity`. All other order types must specify a `quantity`."
+     },
+     "quoteQuantity": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The maximum amount of the quote asset to spend (Ask) or receive (Bid)\nfor market orders. This is used for reverse market orders. The\norder book will execute a `quantity` as close as possible to the\nnotional value of `quoteQuantity`."
+     },
+     "reduceOnly": {
+      "type": "boolean",
+      "description": "If true then the order can only reduce the positon. Futures only."
+     },
+     "selfTradePrevention": {
+      "description": "Action to take if the user crosses themselves in the order book.",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/SelfTradePrevention"
+       },
+       {
+        "description": "Action to take if the user crosses themselves in the order book."
+       }
+      ]
+     },
+     "side": {
+      "description": "Order will be matched against the resting orders on the other side of\nthe order book.",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/Side"
+       },
+       {
+        "description": "Order will be matched against the resting orders on the other side of\nthe order book."
+       }
+      ]
+     },
+     "stopLossLimitPrice": {
+      "type": "string",
+      "format": "decimal",
+      "description": "Stop loss limit price. If set the stop loss will be a limit order."
+     },
+     "stopLossTriggerBy": {
+      "type": "string",
+      "description": "Reference price that should trigger the stop loss order.",
+      "enum": [
+       "MarkPrice",
+       "LastPrice",
+       "IndexPrice"
+      ]
+     },
+     "stopLossTriggerPrice": {
+      "type": "string",
+      "description": "Stop loss price (price the stop loss order will be triggered at)."
+     },
+     "symbol": {
+      "type": "string",
+      "description": "The market for the order."
+     },
+     "takeProfitLimitPrice": {
+      "type": "string",
+      "format": "decimal",
+      "description": "Take profit limit price. If set the take profit will be a limit order,"
+     },
+     "takeProfitTriggerBy": {
+      "type": "string",
+      "description": "Reference price that should trigger the take profit order.",
+      "enum": [
+       "MarkPrice",
+       "LastPrice",
+       "IndexPrice"
+      ]
+     },
+     "takeProfitTriggerPrice": {
+      "type": "string",
+      "description": "Take profit price (price the take profit order will be triggered at)."
+     },
+     "timeInForce": {
+      "description": "How long the order is good for.",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/TimeInForce"
+       },
+       {
+        "description": "How long the order is good for."
+       }
+      ]
+     },
+     "triggerBy": {
+      "type": "string",
+      "description": "Reference price that should trigger the order.",
+      "enum": [
+       "MarkPrice",
+       "LastPrice",
+       "IndexPrice"
+      ]
+     },
+     "triggerPrice": {
+      "type": "string",
+      "description": "Trigger price if this is a conditional order."
+     },
+     "triggerQuantity": {
+      "type": "string",
+      "description": "Trigger quantity if this is a trigger order."
+     },
+     "slippageTolerance": {
+      "type": "string",
+      "format": "decimal",
+      "description": "Slippage tolerance allowed for the order."
+     },
+     "slippageToleranceType": {
+      "description": "Slippage tolerance type.",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/SlippageToleranceType"
+       },
+       {
+        "description": "Slippage tolerance type."
+       }
+      ]
+     }
+    }
+   },
+   "Side": {
+    "type": "string",
+    "enum": [
+     "Bid",
+     "Ask"
+    ]
+   },
+   "TimeInForce": {
+    "type": "string",
+    "enum": [
+     "GTC",
+     "IOC",
+     "FOK"
+    ]
+   },
+   "DepthLimit": {
+    "type": "string",
+    "enum": [
+     "5",
+     "10",
+     "20",
+     "50",
+     "100",
+     "500",
+     "1000"
+    ]
+   }
+  }
+ }
+}
