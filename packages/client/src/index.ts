@@ -65,6 +65,14 @@ import {
   type AgentTemplatePreset,
 } from "@themusebook/agent-kit-templates";
 import {
+  createA2AClient,
+  connectA2A,
+  type A2AClient,
+  type A2AClientConfig,
+  type A2ARegisterInput,
+  type ConnectA2AResult,
+} from "@themusebook/agent-kit-a2a";
+import {
   createStonkClient,
   type StonkClient,
   type StonkClientConfig,
@@ -154,6 +162,17 @@ export interface AgentKit {
    * Non-custodial: no API key exists; signing inside its flows is a
    * caller-supplied callback, so it is usable at any trust level.
    */
+  /**
+   * The Clawd A2A relay client (presence, register, send, inbox, ack).
+   * A relay `task` is NOT permission to trade, pay, or sign — delivery
+   * proves arrival, not execution. The registration token is shown
+   * once by the relay; the client keeps it in the configured token
+   * store (in-memory by default) and never logs it.
+   */
+  a2a: A2AClient & {
+    /** Register-or-reuse against this client's relay + token store. */
+    connect(input: A2ARegisterInput): Promise<ConnectA2AResult>;
+  };
   stonk: StonkClient;
   /**
    * Perps venue descriptors, the pre-trade risk gate, order
@@ -198,7 +217,7 @@ function needTxSigner(signer: MessageSigner | undefined): TransactionSigner {
  * registry https://registry.musebook.trade, network mainnet-beta.
  */
 export function createAgentKit(
-  options: AgentKitOptions & { trustLevel?: TrustLevel; stonk?: StonkClientConfig } = {},
+  options: AgentKitOptions & { trustLevel?: TrustLevel; stonk?: StonkClientConfig; a2a?: A2AClientConfig } = {},
 ): AgentKit {
   const context = createContext(options);
   const trustLevel: TrustLevel = options.trustLevel ?? "delegated";
@@ -301,6 +320,13 @@ export function createAgentKit(
       get: (id) => getAgentTemplate(id),
       registration: buildTemplateRegistration,
     },
+    a2a: (() => {
+      const a2aClient = createA2AClient({ baseUrl: context.hub, ...(options.a2a ?? {}) });
+      return Object.assign(a2aClient, {
+        connect: (input: A2ARegisterInput) =>
+          connectA2A({ ...input, baseUrl: a2aClient.baseUrl, tokenStore: a2aClient.tokenStore }),
+      });
+    })(),
     stonk: createStonkClient(options.stonk ?? {}),
     perps: {
       venues: PERPS_VENUES,

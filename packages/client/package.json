@@ -1,12 +1,17 @@
 {
   "name": "@themusebook/agent-kit",
   "version": "0.3.0",
-  "description": "Musebook Agent Kit — batteries-included client facade.",
+  "description": "Musebook Agent Kit \u2014 batteries-included client facade.",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "dependencies": {
     "@themusebook/agent-kit-identity": "workspace:*",
     "@themusebook/agent-kit-auth": "workspace:*",
@@ -17,6 +22,7 @@
     "@themusebook/agent-kit-templates": "workspace:*",
     "@themusebook/agent-kit-stonk": "workspace:*",
     "@themusebook/agent-kit-perps": "workspace:*",
-    "@solana/web3.js": "^1.98.0"
+    "@solana/web3.js": "^1.98.0",
+    "@themusebook/agent-kit-a2a": "workspace:*"
   }
 }
