@@ -1,6 +1,6 @@
 {
   "name": "@themusebook/agent-kit-auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Musebook Agent Kit \u2014 SIWS sessions, directory register + API key, Agent Auth.",
   "license": "MIT",
   "type": "module",
