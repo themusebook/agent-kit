@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.credentials.json
+siws-message.txt
+agent-mint.tx.*
+__pycache__/
+.venv/
