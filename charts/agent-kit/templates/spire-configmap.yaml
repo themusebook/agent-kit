@@ -1,0 +1,11 @@
+{{- if .Values.spire.configMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ak.component" (dict "root" . "component" "spire") }}
+data:
+  server.conf: |
+{{ .Files.Get "files/server.conf" | indent 4 }}
+  agent.conf: |
+{{ .Files.Get "files/agent.conf" | indent 4 }}
+{{- end }}

@@ -1,0 +1,27 @@
+{{- if .Values.worker.enabled }}
+{{- $c := dict "root" . "component" "worker" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ak.component" $c }}
+  labels: {{- include "ak.labels" $c | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "ak.selector" $c | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "ak.labels" $c | nindent 8 }}
+    spec:
+      {{- include "ak.pod" $c | nindent 6 }}
+      containers:
+        - name: worker
+          image: {{ include "ak.image" (dict "root" . "name" .Values.worker.image) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: {{ toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - { name: SERVER_INTERNAL_URL, value: {{ printf "http://%s:%v" (include "ak.component" (dict "root" . "component" "server")) .Values.server.port | quote }} }
+            - { name: WORKER_TICK_MS, value: {{ .Values.worker.tickMs | quote }} }
+            {{- include "ak.secretEnv" (dict "env" "WORKER_SHARED_SECRET" "ref" .Values.secrets.workerSharedSecret) | nindent 12 }}
+          resources: {{ toYaml .Values.worker.resources | nindent 12 }}
+{{- end }}

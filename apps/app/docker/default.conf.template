@@ -1,0 +1,16 @@
+# Rendered at container start by nginx's envsubst (only the variables listed in
+# NGINX_ENVSUBST_FILTER). Secrets come from env, never from the image.
+server {
+  listen 8080;
+  root /usr/share/nginx/html;
+  location / { try_files $uri /index.html; }
+  location /server/ {
+    proxy_pass ${SERVER_URL}/;
+    proxy_set_header Authorization "Bearer ${WORKER_SHARED_SECRET}";
+  }
+  location = /rpc {
+    proxy_pass ${SOLANA_RPC_URL};
+    proxy_ssl_server_name on;
+    proxy_set_header Host $proxy_host;
+  }
+}

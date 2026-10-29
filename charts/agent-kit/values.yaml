@@ -1,0 +1,83 @@
+# musebook agent-kit chart. Adapted from SolanaBot's charts/openbot.
+#
+# SECRETS: this chart never takes a secret value. Every secret is a reference
+# ({name, key}) to a Kubernetes Secret you already created (by hand, sealed-secrets,
+# External Secrets, ...). The chart renders no Secret objects.
+
+nameOverride: ""
+fullnameOverride: ""
+imagePullSecrets: []
+commonLabels: {}
+
+image:
+  registry: ghcr.io/themusebook
+  tag: ""            # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+# Shared configuration (non-secret).
+musebookOrigin: https://musebook.trade
+openbotServerUrl: http://openbot:8000
+
+# Optional Postgres. Unset = the server keeps routines in memory (single replica only).
+database:
+  urlSecret: {}      # e.g. { name: agent-kit-db, key: DATABASE_URL }
+
+secrets:
+  # Shared by server and worker (and the dashboard proxy). Required.
+  workerSharedSecret: { name: agent-kit, key: WORKER_SHARED_SECRET }
+  # Optional bearer for the OpenBot server.
+  openbotServerToken: {}   # e.g. { name: agent-kit, key: OPENBOT_SERVER_TOKEN }
+  # Optional keyed DAS RPC URL used by the dashboard's /rpc proxy.
+  solanaRpcUrl: {}         # e.g. { name: agent-kit, key: SOLANA_RPC_URL }
+
+server:
+  enabled: true
+  image: agent-kit-server
+  replicas: 1
+  port: 4000
+  resources: {}
+
+worker:
+  enabled: true
+  image: agent-kit-worker
+  tickMs: 30000
+  resources: {}
+
+app:
+  enabled: true
+  image: agent-kit-app
+  replicas: 1
+  port: 8080
+  # Public RPC used when secrets.solanaRpcUrl is not set.
+  solanaRpcUrl: https://api.devnet.solana.com
+  resources: {}
+
+# The supervisor holds a Docker socket (root on the node). Off by default; most
+# clusters should not run it. Enabling mounts the node's socket via hostPath.
+supervisor:
+  enabled: false
+  image: agent-kit-supervisor
+  port: 4300
+  computerImage: musebook-agent-computer:latest
+  token: { name: agent-kit, key: SUPERVISOR_TOKEN }
+  dockerSocket: /var/run/docker.sock
+  resources: {}
+
+# SPIRE: ships the ported server/agent config as a ConfigMap for use with the
+# official SPIRE chart. This chart does not run SPIRE itself.
+spire:
+  configMap: false
+
+ingress:
+  enabled: false
+  className: ""
+  host: agents.example.com
+  tls: []
+  annotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile: { type: RuntimeDefault }
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities: { drop: [ALL] }

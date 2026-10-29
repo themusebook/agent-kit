@@ -1,0 +1,43 @@
+{{- if .Values.app.enabled }}
+{{- $c := dict "root" . "component" "app" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ak.component" $c }}
+  labels: {{- include "ak.labels" $c | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels: {{- include "ak.selector" $c | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "ak.labels" $c | nindent 8 }}
+    spec:
+      {{- include "ak.pod" $c | nindent 6 }}
+      containers:
+        - name: app
+          image: {{ include "ak.image" (dict "root" . "name" .Values.app.image) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: {{ toYaml .Values.securityContext | nindent 12 }}
+          ports: [{ name: http, containerPort: {{ .Values.app.port }} }]
+          env:
+            # Read by the image's proxy (/server -> server with bearer added, /rpc -> RPC). Never bundled.
+            - { name: SERVER_URL, value: {{ printf "http://%s:%v" (include "ak.component" (dict "root" . "component" "server")) .Values.server.port | quote }} }
+            {{- include "ak.secretEnv" (dict "env" "WORKER_SHARED_SECRET" "ref" .Values.secrets.workerSharedSecret) | nindent 12 }}
+            {{- if .Values.secrets.solanaRpcUrl.name }}
+            {{- include "ak.secretEnv" (dict "env" "SOLANA_RPC_URL" "ref" .Values.secrets.solanaRpcUrl) | nindent 12 }}
+            {{- else }}
+            - { name: SOLANA_RPC_URL, value: {{ .Values.app.solanaRpcUrl | quote }} }
+            {{- end }}
+          readinessProbe: { httpGet: { path: /, port: http } }
+          resources: {{ toYaml .Values.app.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ak.component" $c }}
+  labels: {{- include "ak.labels" $c | nindent 4 }}
+spec:
+  selector: {{- include "ak.selector" $c | nindent 4 }}
+  ports: [{ name: http, port: 80, targetPort: http }]
+{{- end }}

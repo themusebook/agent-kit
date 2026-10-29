@@ -1,0 +1,2 @@
+{{- if not .Values.secrets.workerSharedSecret.name }}{{ fail "secrets.workerSharedSecret must reference an existing Secret" }}{{ end }}
+{{- if and (gt (int .Values.server.replicas) 1) (not .Values.database.urlSecret.name) }}{{ fail "server.replicas > 1 needs database.urlSecret (in-memory routines are per pod)" }}{{ end }}
