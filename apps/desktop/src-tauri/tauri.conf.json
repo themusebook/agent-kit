@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "musebook agents",
+  "version": "0.1.0",
+  "identifier": "trade.musebook.agentkit.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:3021",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage", "deb", "rpm", "dmg", "nsis"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "category": "DeveloperTool",
+    "shortDescription": "musebook agent-kit dashboard",
+    "longDescription": "Desktop window for the agent-kit dashboard. Holds no keys; signing happens in your wallet."
+  }
+}
