@@ -65,6 +65,24 @@ import {
   type AgentTemplatePreset,
 } from "@themusebook/agent-kit-templates";
 import {
+  createStonkClient,
+  type StonkClient,
+  type StonkClientConfig,
+} from "@themusebook/agent-kit-stonk";
+import {
+  PERPS_VENUES,
+  buildActionSpace,
+  buildGridPlan,
+  buildImperialPlaceOrder,
+  buildTakeProfitStopLossPlan,
+  buildTouchOrder,
+  buildTwammOrder,
+  evaluatePreTradeRisk,
+  getPerpsVenue,
+  sizePerpsOrder,
+  type PerpsVenueDescriptor,
+} from "@themusebook/agent-kit-perps";
+import {
   createContext,
   type AgentKitOptions,
   type KitContext,
@@ -131,6 +149,29 @@ export interface AgentKit {
     get(id: AgentTemplateId): AgentTemplatePreset;
     registration: typeof buildTemplateRegistration;
   };
+  /**
+   * The Stonkfun Developer API client (reads, launches, fee claims).
+   * Non-custodial: no API key exists; signing inside its flows is a
+   * caller-supplied callback, so it is usable at any trust level.
+   */
+  stonk: StonkClient;
+  /**
+   * Perps venue descriptors, the pre-trade risk gate, order
+   * descriptors and the JEV decision engine (all pure — callers sign
+   * and submit; see @themusebook/agent-kit-perps).
+   */
+  perps: {
+    venues: readonly PerpsVenueDescriptor[];
+    venue: typeof getPerpsVenue;
+    evaluatePreTradeRisk: typeof evaluatePreTradeRisk;
+    sizeOrder: typeof sizePerpsOrder;
+    buildPlaceOrder: typeof buildImperialPlaceOrder;
+    buildTakeProfitStopLossPlan: typeof buildTakeProfitStopLossPlan;
+    buildTwammOrder: typeof buildTwammOrder;
+    buildGridPlan: typeof buildGridPlan;
+    buildTouchOrder: typeof buildTouchOrder;
+    buildActionSpace: typeof buildActionSpace;
+  };
   connection(): Connection;
 }
 
@@ -157,7 +198,7 @@ function needTxSigner(signer: MessageSigner | undefined): TransactionSigner {
  * registry https://registry.musebook.trade, network mainnet-beta.
  */
 export function createAgentKit(
-  options: AgentKitOptions & { trustLevel?: TrustLevel } = {},
+  options: AgentKitOptions & { trustLevel?: TrustLevel; stonk?: StonkClientConfig } = {},
 ): AgentKit {
   const context = createContext(options);
   const trustLevel: TrustLevel = options.trustLevel ?? "delegated";
@@ -259,6 +300,19 @@ export function createAgentKit(
       list: () => AGENT_TEMPLATES,
       get: (id) => getAgentTemplate(id),
       registration: buildTemplateRegistration,
+    },
+    stonk: createStonkClient(options.stonk ?? {}),
+    perps: {
+      venues: PERPS_VENUES,
+      venue: getPerpsVenue,
+      evaluatePreTradeRisk,
+      sizeOrder: sizePerpsOrder,
+      buildPlaceOrder: buildImperialPlaceOrder,
+      buildTakeProfitStopLossPlan,
+      buildTwammOrder,
+      buildGridPlan,
+      buildTouchOrder,
+      buildActionSpace,
     },
   };
 }

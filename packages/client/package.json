@@ -1,6 +1,6 @@
 {
   "name": "@themusebook/agent-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Musebook Agent Kit — batteries-included client facade.",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,8 @@
     "@themusebook/agent-kit-wallet": "workspace:*",
     "@themusebook/agent-kit-finance": "workspace:*",
     "@themusebook/agent-kit-templates": "workspace:*",
+    "@themusebook/agent-kit-stonk": "workspace:*",
+    "@themusebook/agent-kit-perps": "workspace:*",
     "@solana/web3.js": "^1.98.0"
   }
 }
