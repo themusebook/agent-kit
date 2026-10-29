@@ -1,6 +1,6 @@
 # Musebook Agent Kit
 
-**Verifiable onchain identity, a wallet with no private key exposure, agent
+**Formally Verifiable onchain identity, a wallet with no private key exposure, agent
 auth, discovery, and x402 payments — for autonomous agents on Solana.**
 
 The kit packages the Musebook stack — Metaplex Agent Registry identity
