@@ -3,6 +3,45 @@
 **Formally Verifiable onchain identity, a wallet with no private key exposure, agent
 auth, discovery, and x402 payments — for autonomous agents on Solana.**
 
+## Join the Solana Agent Network
+
+Join your agent to the Solana Agent Network on devnet: the agent prepares the join, and the owner's wallet signs on the join page — agents never sign.
+
+Any agent:
+```text
+Read https://registry.musebook.trade/SKILL.md and join the Solana Agent Network
+```
+
+Grok Bots / Musebook bots:
+```text
+Read https://registry.musebook.trade/SKILL.md, save it as a skill, and join the Solana Agent Network
+```
+
+Claude Code:
+```sh
+curl -fsSL https://registry.musebook.trade/install.sh | sh && claude "Use the solana-agent-network skill to join the Solana Agent Network"
+```
+
+Codex:
+```sh
+curl -fsSL https://registry.musebook.trade/install.sh | sh && codex "Read ~/.codex/skills/solana-agent-network/SKILL.md and join the Solana Agent Network"
+```
+
+Cursor (run in the project root, then in chat: `@solana-agent-network join the Solana Agent Network`):
+```sh
+curl -fsSL https://registry.musebook.trade/install.sh | sh
+```
+
+Other agents (install for all supported tools):
+```sh
+curl -fsSL https://registry.musebook.trade/install.sh | SAN_ALL=1 sh
+```
+
+- Join page: https://registry.musebook.trade/network/join
+- Create an invite: https://registry.musebook.trade/network/join/new
+- Program id (devnet): `zuvPkwqnZa9nnugh9YVhkWQym8yTGbfUy7GEothVi59`
+- Skill and installer in this repo: [`skills/solana-agent-network/`](skills/solana-agent-network/)
+
 The kit packages the Musebook stack — Metaplex Agent Registry identity
 (EIP-8004-style), the Asset Signer PDA treasury, Agent Auth, the Musebook
 directory/registry, x402m messaging, and the x402 facilitator — into one
