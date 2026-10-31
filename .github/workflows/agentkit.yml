@@ -1,0 +1,32 @@
+name: agentkit
+# CI for the Musebook Agent Kit packages derived from coinbase/agentkit (agentkit/).
+on:
+  push: { branches: [main], paths: ["agentkit/**", ".github/workflows/agentkit.yml"] }
+  pull_request: { paths: ["agentkit/**", ".github/workflows/agentkit.yml"] }
+permissions: { contents: read }
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: agentkit/typescript } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm --filter @musebook/agent-kit-core build
+      - run: pnpm --filter @musebook/agent-kit-core lint
+      - run: pnpm --filter @musebook/agent-kit-core test
+  python:
+    runs-on: ubuntu-latest
+    strategy: { matrix: { python: ["3.10", "3.12"] } }
+    defaults: { run: { working-directory: agentkit/python/musebook-agent-kit } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --all-extras --dev
+      - run: uv run ruff check .
+      - run: uv run pytest -q -m "not e2e and not integration"

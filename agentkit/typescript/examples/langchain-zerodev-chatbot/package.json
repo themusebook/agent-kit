@@ -1,0 +1,36 @@
+{
+  "name": "@musebook/agent-kit-langchain-zerodev-chatbot-example",
+  "description": "ZeroDev Agentkit LangChain Extension Chatbot Example",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Musebook",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "NODE_OPTIONS='--no-warnings' tsx ./index.ts",
+    "dev": "nodemon ./index.ts",
+    "lint": "eslint -c .eslintrc.json *.ts",
+    "lint:fix": "eslint -c .eslintrc.json *.ts --fix",
+    "format": "prettier --write \"**/*.{ts,js,cjs,json,md}\"",
+    "format:check": "prettier -c .prettierrc --check \"**/*.{ts,js,cjs,json,md}\""
+  },
+  "dependencies": {
+    "@musebook/agent-kit-core": "workspace:*",
+    "@musebook/agent-kit-langchain": "workspace:*",
+    "@langchain/core": "^1.1.0",
+    "@langchain/langgraph": "^1.2.0",
+    "@langchain/openai": "^1.2.0",
+    "dotenv": "^16.4.5",
+    "langchain": "^1.1.0",
+    "reflect-metadata": "^0.2.2",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "nodemon": "^3.1.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "viem": "2.23.15"
+  }
+}
