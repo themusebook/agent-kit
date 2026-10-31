@@ -1,0 +1,8 @@
+packages:
+  - "agentkit"
+  - "create-musebook-agent"
+  - "create-musebook-agent/templates/*"
+  - "!create-musebook-agent/templates/next"
+  - "!create-musebook-agent/templates/mcp"
+  - "framework-extensions/*"
+  - "examples/*"

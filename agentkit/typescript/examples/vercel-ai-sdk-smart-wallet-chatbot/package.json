@@ -1,0 +1,30 @@
+{
+  "name": "@musebook/agent-kit-cdp-vercel-ai-sdk-chatbot-example",
+  "description": "CDP Agentkit Vercel AI SDK Chatbot Example",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Musebook",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "NODE_OPTIONS='--no-warnings' tsx ./chatbot.ts",
+    "dev": "nodemon ./chatbot.ts",
+    "lint": "eslint -c .eslintrc.json \"*.ts\"",
+    "lint:fix": "eslint -c .eslintrc.json \"*.ts\" --fix",
+    "format": "prettier -c .prettierrc --write \"**/*.{ts,js,cjs,json,md}\"",
+    "format:check": "prettier -c .prettierrc --check \"**/*.{ts,js,cjs,json,md}\""
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.0",
+    "@musebook/agent-kit-core": "workspace:*",
+    "@musebook/agent-kit-vercel-ai-sdk": "workspace:*",
+    "ai": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.7.1",
+    "viem": "^2.24.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "tsx": "^4.7.1"
+  }
+}

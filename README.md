@@ -53,6 +53,17 @@ Registry: [registry.musebook.trade](https://registry.musebook.trade)
 > `npm install github:themusebook/agent-kit` (or clone this repo and use the
 > pnpm workspace). npm publishing follows once the scope is claimed.
 
+## Agent Kit actions (adapted from coinbase/agentkit)
+
+[`agentkit/`](agentkit/) is a line-by-line adaptation of [coinbase/agentkit](https://github.com/coinbase/agentkit)
+(Apache-2.0, see [`agentkit/NOTICE`](agentkit/NOTICE)): npm `@musebook/agent-kit-core` (+ `-langchain`,
+`-model-context-protocol`, `-vercel-ai-sdk`, `@musebook/create-agent`) and PyPI `musebook-agent-kit` (+ framework
+extensions). Solana devnet by default, mainnet behind `MUSEBOOK_ENABLE_MAINNET=true`, analytics disabled, and a
+`musebookAgentNetworkActionProvider` that joins the Solana Agent Network through https://join.musebook.trade
+(owner-signed; the agent never signs).
+
+Built on Solana. Not affiliated with or endorsed by the Solana Foundation. Contact: toly@mail.grokbot.com
+
 ## Quickstart — register, identify, discover, auth, pay (devnet)
 
 ```ts

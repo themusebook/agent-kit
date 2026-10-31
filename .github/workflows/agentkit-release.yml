@@ -1,0 +1,43 @@
+name: agentkit-release
+# Manual only. Default is a dry run (pack/build). Publishing to npm or PyPI requires
+# publish=true AND a maintainer approving the protected environment holding the token.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish @musebook/agent-kit-* to npm and musebook-agent-kit* to PyPI (false = dry run)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.publish && 'npm-publish' || '' }}
+    defaults: { run: { working-directory: agentkit/typescript } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, registry-url: "https://registry.npmjs.org" }
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm run build
+      - if: ${{ !inputs.publish }}
+        run: pnpm -r --filter "./agentkit" --filter "./framework-extensions/*" --filter "./create-musebook-agent" exec npm pack --dry-run
+      - if: ${{ inputs.publish }}
+        run: pnpm changeset publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  pypi:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.publish && 'pypi-publish' || '' }}
+    defaults: { run: { working-directory: agentkit/python/musebook-agent-kit } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - if: ${{ inputs.publish }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with: { packages-dir: agentkit/python/musebook-agent-kit/dist }

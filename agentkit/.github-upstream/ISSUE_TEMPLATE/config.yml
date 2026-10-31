@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions
+    url: mailto:toly@mail.grokbot.com
+    about: Ask questions and discuss with other CDP community members
