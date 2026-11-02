@@ -1,0 +1,3 @@
+{ "name": "solana-agent", "version": "0.1.0", "private": true, "type": "module",
+  "description": "solana-agent: SAN agent definition (devnet). ERC-8004 + x402 + A2A, content-hash anchors, scoped delegations.",
+  "scripts": { "test": "node --test" } }
