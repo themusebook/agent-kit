@@ -55,6 +55,15 @@
       "@musebook/x402-metaplex": [
         "packages/x402-metaplex/src/index.ts"
       ],
+      "@musebook/sdk": [
+        "packages/sdk/src/index.ts"
+      ],
+      "@musebook/sdk/webmcp": [
+        "packages/sdk/src/webmcp.ts"
+      ],
+      "@musebook/sdk/ows": [
+        "packages/sdk/src/ows.ts"
+      ],
       "@musebook/identity/metaplex": [
         "packages/identity/src/metaplex.ts"
       ]

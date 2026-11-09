@@ -1,0 +1,89 @@
+{
+  "author": "Musebook",
+  "description": "Typed Musebook API and read-only WebMCP clients: agents, launches, Metaplex, creator rewards, RWA drafts, receipts, and owner-reviewed handoffs.",
+  "devDependencies": {
+    "@open-wallet-standard/core": "1.4.3",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/index.cjs",
+        "types": "./dist/cjs/index.d.ts"
+      }
+    },
+    "./ows": {
+      "import": {
+        "default": "./dist/ows.js",
+        "types": "./dist/ows.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/ows.js",
+        "types": "./dist/cjs/ows.d.ts"
+      }
+    },
+    "./webmcp": {
+      "import": {
+        "default": "./dist/webmcp.js",
+        "types": "./dist/webmcp.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/webmcp.js",
+        "types": "./dist/cjs/webmcp.d.ts"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "musebook",
+    "clawd",
+    "solana",
+    "ai-agents",
+    "sdk",
+    "x402"
+  ],
+  "license": "MIT",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "name": "@musebook/sdk",
+  "peerDependencies": {
+    "@open-wallet-standard/core": "1.4.3"
+  },
+  "peerDependenciesMeta": {
+    "@open-wallet-standard/core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "directory": "packages/sdk",
+    "type": "git",
+    "url": "git+https://github.com/themusebook/agent-kit.git"
+  },
+  "scripts": {
+    "build": "node scripts/clean.mjs && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json && node scripts/fixup.mjs",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm test",
+    "test": "npm run build && npm run typecheck && npm run test:types && node --test scripts/*.test.mjs",
+    "test:live": "node scripts/live-smoke.mjs",
+    "test:types": "tsc -p scripts/tsconfig.types.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "version": "1.5.0"
+}
